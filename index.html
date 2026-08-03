@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mina Anteckningar</title>
+  <title>Anteckningar</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -15,7 +15,10 @@
   <div class="input-container">
     <input type="text" id="note-title" placeholder="Titel..." />
     <textarea id="note-text" placeholder="Skriv en anteckning..."></textarea>
-    <button id="save-btn" class="save-btn">Spara anteckning</button>
+    <div class="button-group">
+      <button id="save-btn" class="save-btn">Spara anteckning</button>
+      <button id="clear-btn" class="clear-btn">Rensa fält</button>
+    </div>
   </div>
 
   <div id="notes-list"></div>
