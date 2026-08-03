@@ -1,156 +1,46 @@
-/* Grundinställningar & Dark Theme Variables */
-:root {
-  --bg-color: #121212;
-  --card-bg: #1e1e1e;
-  --input-bg: #2d2d2d;
-  --text-main: #ffffff;
-  --text-muted: #aaaaaa;
-  --accent-color: #28a745;
-  --danger-color: #dc3545;
-  --border-color: #333333;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-body {
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-/* Header & + knapp */
-.app-header {
+/* Modal (Popup för att läsa anteckning) */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.app-header h1 {
-  font-size: 1.5rem;
-}
-
-.icon-btn {
-  background-color: var(--accent-color);
-  color: #fff;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
   justify-content: center;
-}
-
-/* Formulär */
-.note-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background-color: var(--card-bg);
+  align-items: center;
   padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color);
+  z-index: 1000;
 }
 
-.note-form.hidden {
+.modal.hidden {
   display: none;
 }
 
-input[type="text"], textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background-color: var(--input-bg);
-  color: var(--text-main);
-  font-size: 1rem;
-}
-
-textarea {
-  height: 100px;
-  resize: vertical;
-}
-
-.form-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: bold;
-  cursor: pointer;
-  flex: 1;
-}
-
-.btn-save {
-  background-color: var(--accent-color);
-  color: #fff;
-}
-
-.btn-cancel {
-  background-color: #444444;
-  color: #fff;
-}
-
-/* Lista över anteckningar */
-.notes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.note-card {
+.modal-content {
   background-color: var(--card-bg);
-  padding: 16px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   border: 1px solid var(--border-color);
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
-.note-info h3 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-  word-break: break-word;
+.modal-content hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 12px 0;
 }
 
-.note-info small {
-  color: var(--text-muted);
-  font-size: 0.8rem;
+#view-body {
+  white-space: pre-wrap; /* Behåller radbrytningar i anteckningen */
+  line-height: 1.5;
+  color: var(--text-main);
 }
 
-.btn-delete {
-  background-color: transparent;
-  color: var(--danger-color);
-  border: 1px solid var(--danger-color);
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
+/* Gör kortet klickbart */
+.note-card {
   cursor: pointer;
-  margin-left: 12px;
-  white-space: nowrap;
-}
-
-.btn-delete:active {
-  background-color: var(--danger-color);
-  color: #fff;
 }

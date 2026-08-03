@@ -1,33 +1,12 @@
-<!DOCTYPE html>
-<html lang="sv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anteckningar</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-</head>
-<body>
-
-  <div class="app-header">
-    <h1>Anteckningar</h1>
-    <button id="toggle-form-btn" class="icon-btn" onclick="toggleForm()">+</button>
-  </div>
-
-  <!-- Formulär för ny anteckning (dolt som standard) -->
-  <div id="note-form" class="note-form hidden">
-    <input type="text" id="note-title" placeholder="Titel...">
-    <textarea id="note-content" placeholder="Skriv din anteckning här..."></textarea>
-    <div class="form-actions">
-      <button class="btn btn-save" onclick="saveNote()">Spara</button>
-      <button class="btn btn-cancel" onclick="toggleForm()">Avbryt</button>
+  <!-- Modal för att visa/läsa en hel anteckning -->
+  <div id="read-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="view-title"></h2>
+      <small id="view-date"></small>
+      <hr>
+      <p id="view-body"></p>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button class="btn btn-cancel" onclick="closeReadModal()">Stäng</button>
+      </div>
     </div>
   </div>
-
-  <!-- Lista över sparade anteckningar -->
-  <div id="notes-list" class="notes-list"></div>
-
-  <script src="app.js"></script>
-</body>
-</html>

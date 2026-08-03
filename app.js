@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', loadNotes);
 
-// Växlar visning av formuläret (+ knappen)
 function toggleForm() {
   const form = document.getElementById('note-form');
   form.classList.toggle('hidden');
   
-  // Rensa fälten när man stänger eller öppnar
   if (form.classList.contains('hidden')) {
     clearFields();
   }
@@ -40,7 +38,7 @@ function saveNote() {
   localStorage.setItem('notes', JSON.stringify(notes));
 
   clearFields();
-  toggleForm(); // Dölj formuläret efter sparande
+  toggleForm();
   loadNotes();
 }
 
@@ -58,20 +56,43 @@ function loadNotes() {
   notes.forEach(note => {
     const card = document.createElement('div');
     card.className = 'note-card';
+    
+    // Klicka på kortet för att öppna anteckningen
+    card.onclick = () => openNote(note.id);
 
     card.innerHTML = `
       <div class="note-info">
         <h3>${escapeHtml(note.title)}</h3>
         <small>${note.date}</small>
       </div>
-      <button class="btn-delete" onclick="deleteNote(${note.id})">Radera</button>
+      <button class="btn-delete" onclick="deleteNote(event, ${note.id})">Radera</button>
     `;
 
     notesList.appendChild(card);
   });
 }
 
-function deleteNote(id) {
+// Öppna och visa hela anteckningen
+function openNote(id) {
+  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+  const note = notes.find(n => n.id === id);
+
+  if (note) {
+    document.getElementById('view-title').innerText = note.title;
+    document.getElementById('view-date').innerText = note.date;
+    document.getElementById('view-body').innerText = note.content || '(Ingen text)';
+    document.getElementById('read-modal').classList.remove('hidden');
+  }
+}
+
+function closeReadModal() {
+  document.getElementById('read-modal').classList.add('hidden');
+}
+
+// event.stopPropagation() hindrar att kortet öppnas när man trycker på Radera
+function deleteNote(event, id) {
+  event.stopPropagation(); 
+  
   let notes = JSON.parse(localStorage.getItem('notes')) || [];
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('notes', JSON.stringify(notes));
