@@ -1,72 +1,90 @@
-const titleInput = document.getElementById('note-title');
-const textInput = document.getElementById('note-text');
-const saveBtn = document.getElementById('save-btn');
-const clearBtn = document.getElementById('clear-btn');
-const notesList = document.getElementById('notes-list');
+document.addEventListener('DOMContentLoaded', loadNotes);
 
-let notes = JSON.parse(localStorage.getItem('my_notes')) || [];
-
-function saveAndRender() {
-  localStorage.setItem('my_notes', JSON.stringify(notes));
-  renderNotes();
+// Växlar visning av formuläret (+ knappen)
+function toggleForm() {
+  const form = document.getElementById('note-form');
+  form.classList.toggle('hidden');
+  
+  // Rensa fälten när man stänger eller öppnar
+  if (form.classList.contains('hidden')) {
+    clearFields();
+  }
 }
 
-function renderNotes() {
+function saveNote() {
+  const titleInput = document.getElementById('note-title');
+  const contentInput = document.getElementById('note-content');
+  
+  const title = titleInput.value.trim();
+  const content = contentInput.value.trim();
+
+  if (!title) {
+    alert('Vänligen fyll i en titel.');
+    return;
+  }
+
+  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+  const newNote = {
+    id: Date.now(),
+    title: title,
+    content: content,
+    date: new Date().toLocaleDateString('sv-SE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  };
+
+  notes.unshift(newNote);
+  localStorage.setItem('notes', JSON.stringify(notes));
+
+  clearFields();
+  toggleForm(); // Dölj formuläret efter sparande
+  loadNotes();
+}
+
+function loadNotes() {
+  const notesList = document.getElementById('notes-list');
   notesList.innerHTML = '';
-  notes.forEach((note, index) => {
+
+  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+  if (notes.length === 0) {
+    notesList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Inga anteckningar sparade.</p>';
+    return;
+  }
+
+  notes.forEach(note => {
     const card = document.createElement('div');
     card.className = 'note-card';
+
     card.innerHTML = `
-      <div class="card-header">
-        <h3>${note.title || 'Utan titel'}</h3>
-      </div>
-      <div class="card-body">
-        <p>${note.text}</p>
-      </div>
-      <div class="card-footer">
+      <div class="note-info">
+        <h3>${escapeHtml(note.title)}</h3>
         <small>${note.date}</small>
-        <button onclick="deleteNote(${index})" class="delete-btn">Radera</button>
       </div>
+      <button class="btn-delete" onclick="deleteNote(${note.id})">Radera</button>
     `;
+
     notesList.appendChild(card);
   });
 }
 
-// Spara anteckning
-saveBtn.addEventListener('click', () => {
-  const title = titleInput.value.trim();
-  const text = textInput.value.trim();
+function deleteNote(id) {
+  let notes = JSON.parse(localStorage.getItem('notes')) || [];
+  notes = notes.filter(note => note.id !== id);
+  localStorage.setItem('notes', JSON.stringify(notes));
+  loadNotes();
+}
 
-  if (!title && !text) return;
+function clearFields() {
+  document.getElementById('note-title').value = '';
+  document.getElementById('note-content').value = '';
+}
 
-  const newNote = {
-    title: title || 'Utan titel',
-    text: text,
-    date: new Date().toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })
-  };
-
-  notes.unshift(newNote); // Lägg överst
-  titleInput.value = '';
-  textInput.value = '';
-  saveAndRender();
-});
-
-// Rensa textfälten (om man ångrar sig medan man skriver)
-clearBtn.addEventListener('click', () => {
-  titleInput.value = '';
-  textInput.value = '';
-});
-
-// Radera en enskild anteckning
-window.deleteNote = function(index) {
-  notes.splice(index, 1);
-  saveAndRender();
-};
-
-// Initial rendering
-renderNotes();
-
-// Registrera Service Worker för offline-stöd
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.innerText = text;
+  return div.innerHTML;
 }

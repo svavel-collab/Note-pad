@@ -6,22 +6,27 @@
   <title>Anteckningar</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
-  <div class="header">
+
+  <div class="app-header">
     <h1>Anteckningar</h1>
+    <button id="toggle-form-btn" class="icon-btn" onclick="toggleForm()">+</button>
   </div>
 
-  <div class="input-container">
-    <input type="text" id="note-title" placeholder="Titel..." />
-    <textarea id="note-text" placeholder="Skriv en anteckning..."></textarea>
-    <div class="button-group">
-      <button id="save-btn" class="save-btn">Spara anteckning</button>
-      <button id="clear-btn" class="clear-btn">Rensa fält</button>
+  <!-- Formulär för ny anteckning (dolt som standard) -->
+  <div id="note-form" class="note-form hidden">
+    <input type="text" id="note-title" placeholder="Titel...">
+    <textarea id="note-content" placeholder="Skriv din anteckning här..."></textarea>
+    <div class="form-actions">
+      <button class="btn btn-save" onclick="saveNote()">Spara</button>
+      <button class="btn btn-cancel" onclick="toggleForm()">Avbryt</button>
     </div>
   </div>
 
-  <div id="notes-list"></div>
+  <!-- Lista över sparade anteckningar -->
+  <div id="notes-list" class="notes-list"></div>
 
   <script src="app.js"></script>
 </body>
