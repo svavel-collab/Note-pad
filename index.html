@@ -6,34 +6,20 @@
   <title>Mina Anteckningar</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
-  <meta name="theme-color" content="#121214">
 </head>
 <body>
-
-  <div class="app-container">
-    <header>
-      <h1>Anteckningar</h1>
-      <button id="new-note-btn" aria-label="Skapa ny anteckning">+</button>
-    </header>
-
-    <main>
-      <div id="notes-list" class="notes-list">
-        <!-- Anteckningar läses in dynamiskt via app.js -->
-      </div>
-    </main>
+  <div class="header">
+    <h1>Anteckningar</h1>
   </div>
 
+  <div class="input-container">
+    <input type="text" id="note-title" placeholder="Titel..." />
+    <textarea id="note-text" placeholder="Skriv en anteckning..."></textarea>
+    <button id="save-btn" class="save-btn">Spara anteckning</button>
+  </div>
+
+  <div id="notes-list"></div>
+
   <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('Service Worker registrerad:', reg))
-          .catch((err) => console.error('Service Worker misslyckades:', err));
-      });
-    }
-  </script>
 </body>
 </html>
