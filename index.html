@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" href="icon.png">
 
   <style>
-    /* Dark Theme Variables */
+    /* Dark Theme & Grundinställningar */
     :root {
       --bg-color: #121212;
       --card-bg: #1e1e1e;
@@ -64,7 +64,7 @@
       justify-content: center;
     }
 
-    /* Formulär */
+    /* Formulär för ny anteckning */
     .note-form {
       display: flex;
       flex-direction: column;
@@ -91,7 +91,7 @@
     }
 
     textarea {
-      height: 100px;
+      height: 120px;
       resize: vertical;
     }
 
@@ -166,7 +166,7 @@
       color: #fff;
     }
 
-    /* Modal (Popup för att läsa) */
+    /* Redigerings-modal (Popup) */
     .modal {
       position: fixed;
       top: 0;
@@ -189,19 +189,18 @@
       width: 100%;
       max-width: 500px;
       max-height: 80vh;
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-content small {
+      color: var(--text-muted);
     }
 
     .modal-content hr {
       border: 0;
       border-top: 1px solid var(--border-color);
-      margin: 12px 0;
-    }
-
-    #view-body {
-      white-space: pre-wrap;
-      line-height: 1.5;
-      color: var(--text-main);
     }
   </style>
 </head>
@@ -209,31 +208,32 @@
 
   <div class="app-header">
     <h1>Anteckningar</h1>
-    <button id="toggle-form-btn" class="icon-btn" onclick="toggleForm()">+</button>
+    <button id="toggle-form-btn" class="icon-btn">+</button>
   </div>
 
-  <!-- Formulär för ny anteckning -->
+  <!-- Formulär för att skapa ny anteckning -->
   <div id="note-form" class="note-form hidden">
     <input type="text" id="note-title" placeholder="Titel...">
     <textarea id="note-content" placeholder="Skriv din anteckning här..."></textarea>
     <div class="form-actions">
-      <button class="btn btn-save" onclick="saveNote()">Spara</button>
-      <button class="btn btn-cancel" onclick="toggleForm()">Avbryt</button>
+      <button id="save-btn" class="btn btn-save">Spara</button>
+      <button id="cancel-btn" class="btn btn-cancel">Avbryt</button>
     </div>
   </div>
 
-  <!-- Lista över sparade anteckningar -->
+  <!-- Lista med alla sparade anteckningar -->
   <div id="notes-list" class="notes-list"></div>
 
-  <!-- Modal för att visa/läsa en hel anteckning -->
+  <!-- Popup för att visa och redigera en anteckning -->
   <div id="read-modal" class="modal hidden">
     <div class="modal-content">
-      <h2 id="view-title"></h2>
+      <input type="text" id="edit-title" placeholder="Titel...">
       <small id="view-date"></small>
       <hr>
-      <p id="view-body"></p>
-      <div class="form-actions" style="margin-top: 20px;">
-        <button class="btn btn-cancel" onclick="closeReadModal()">Stäng</button>
+      <textarea id="edit-body" placeholder="Skriv din anteckning här..."></textarea>
+      <div class="form-actions" style="margin-top: 10px;">
+        <button id="save-edit-btn" class="btn btn-save">Spara ändringar</button>
+        <button id="close-modal-btn" class="btn btn-cancel">Avbryt</button>
       </div>
     </div>
   </div>
