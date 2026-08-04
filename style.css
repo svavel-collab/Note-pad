@@ -137,8 +137,6 @@ body {
   border-radius: 8px;
   border-left: 4px solid #3b82f6;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
   transition: background-color 0.15s ease;
 }
 
@@ -146,15 +144,32 @@ body {
   background-color: #27272a;
 }
 
+/* Behållare för titel + preview */
+.note-content-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  overflow: hidden;
+  margin-right: 12px;
+}
+
 .note-title {
-  font-weight: 500;
-  font-size: 0.92rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-grow: 1;
-  margin-right: 12px;
+}
+
+/* Text-preview */
+.note-snippet {
+  font-size: 0.78rem;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .note-meta {

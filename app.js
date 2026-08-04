@@ -2,7 +2,7 @@ let notes = JSON.parse(localStorage.getItem('notes')) || [];
 let activeNoteId = null;
 let lastDeletedNote = null;
 let toastTimeout = null;
-let activeTimeFilter = 'all'; // 'all', '1', '7', '30'
+let activeTimeFilter = 'all';
 
 const notesList = document.getElementById('notes-list');
 const editor = document.getElementById('editor');
@@ -47,11 +47,11 @@ function renderNotes() {
   const now = Date.now();
 
   const filtered = notes.filter(note => {
-    // 1. Filter på enbart titel
+    // Filter på titel
     const titleMatch = (note.title || '').toLowerCase().includes(query);
     if (!titleMatch) return false;
 
-    // 2. Filter på tidsintervall
+    // Filter på tidsintervall
     if (activeTimeFilter === 'all') return true;
 
     const noteTime = Number(note.updatedAt) || 0;
@@ -76,9 +76,24 @@ function renderNotes() {
     row.className = 'note-row';
     row.style.borderLeftColor = colors[index % colors.length];
     
+    // Behållare för titel och text-preview
+    const contentBox = document.createElement('div');
+    contentBox.className = 'note-content-preview';
+
     const titleEl = document.createElement('span');
     titleEl.className = 'note-title';
     titleEl.textContent = note.title || 'Namnlös';
+
+    const cleanContent = (note.content || '').replace(/\s+/g, ' ').trim();
+    
+    contentBox.appendChild(titleEl);
+    
+    if (cleanContent) {
+      const snippetEl = document.createElement('span');
+      snippetEl.className = 'note-snippet';
+      snippetEl.textContent = cleanContent;
+      contentBox.appendChild(snippetEl);
+    }
 
     const metaEl = document.createElement('span');
     metaEl.className = 'note-meta';
@@ -94,7 +109,7 @@ function renderNotes() {
       deleteNote(note.id);
     });
 
-    row.appendChild(titleEl);
+    row.appendChild(contentBox);
     row.appendChild(metaEl);
     row.appendChild(delBtn);
 
@@ -104,7 +119,6 @@ function renderNotes() {
   });
 }
 
-// Sökknapp – fäll ut / dölj panelen
 searchToggleBtn.addEventListener('click', () => {
   const isHidden = searchContainer.classList.toggle('hidden');
   if (!isHidden) {
@@ -117,7 +131,6 @@ searchToggleBtn.addEventListener('click', () => {
   }
 });
 
-// Tid-filter klick
 filterChips.forEach(chip => {
   chip.addEventListener('click', () => {
     activeTimeFilter = chip.getAttribute('data-days');
