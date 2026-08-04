@@ -14,8 +14,12 @@ const cancelBtn = document.getElementById('cancel-btn');
 const toast = document.getElementById('toast');
 const undoBtn = document.getElementById('undo-btn');
 
+// Robust datumformatering med fallback för saknade/felaktiga tidsstämplar
 function formatDate(timestamp) {
-  const date = new Date(timestamp);
+  if (!timestamp) return '';
+  const date = new Date(Number(timestamp) || timestamp);
+  if (isNaN(date.getTime())) return '';
+  
   const dateStr = date.toLocaleDateString('sv-SE');
   const timeStr = date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
   return `${dateStr} ${timeStr}`;
@@ -27,12 +31,14 @@ function saveToStorage() {
 
 function renderNotes(filter = '') {
   notesList.innerHTML = '';
+  
   const filtered = notes.filter(n => 
-    n.title.toLowerCase().includes(filter.toLowerCase()) || 
-    n.content.toLowerCase().includes(filter.toLowerCase())
+    (n.title && n.title.toLowerCase().includes(filter.toLowerCase())) || 
+    (n.content && n.content.toLowerCase().includes(filter.toLowerCase()))
   );
 
-  filtered.sort((a, b) => b.updatedAt - a.updatedAt);
+  // Sortera nyast först (hanterar även saknat datum)
+  filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
   filtered.forEach(note => {
     const row = document.createElement('div');
