@@ -8,7 +8,6 @@
   <link rel="icon" type="image/png" href="icon.png">
 
   <style>
-    /* Dark Theme & Grundinställningar */
     :root {
       --bg-color: #121212;
       --card-bg: #1e1e1e;
@@ -35,7 +34,6 @@
       margin: 0 auto;
     }
 
-    /* Header & + knapp */
     .app-header {
       display: flex;
       justify-content: space-between;
@@ -64,7 +62,6 @@
       justify-content: center;
     }
 
-    /* Formulär för ny anteckning */
     .note-form {
       display: flex;
       flex-direction: column;
@@ -120,7 +117,6 @@
       color: #fff;
     }
 
-    /* Lista över anteckningar */
     .notes-list {
       display: flex;
       flex-direction: column;
@@ -166,7 +162,6 @@
       color: #fff;
     }
 
-    /* Redigerings-modal (Popup) */
     .modal {
       position: fixed;
       top: 0;
@@ -211,7 +206,6 @@
     <button id="toggle-form-btn" class="icon-btn">+</button>
   </div>
 
-  <!-- Formulär för att skapa ny anteckning -->
   <div id="note-form" class="note-form hidden">
     <input type="text" id="note-title" placeholder="Titel...">
     <textarea id="note-content" placeholder="Skriv din anteckning här..."></textarea>
@@ -221,10 +215,8 @@
     </div>
   </div>
 
-  <!-- Lista med alla sparade anteckningar -->
   <div id="notes-list" class="notes-list"></div>
 
-  <!-- Popup för att visa och redigera en anteckning -->
   <div id="read-modal" class="modal hidden">
     <div class="modal-content">
       <input type="text" id="edit-title" placeholder="Titel...">

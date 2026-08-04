@@ -143,6 +143,10 @@ function closeReadModal() {
 }
 
 function deleteNote(id) {
+  if (!confirm('Är du säker på att du vill radera anteckningen?')) {
+    return;
+  }
+
   let notes = JSON.parse(localStorage.getItem('notes')) || [];
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('notes', JSON.stringify(notes));
@@ -158,4 +162,12 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.innerText = text;
   return div.innerHTML;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('Service Worker registrerad:', reg.scope))
+      .catch((err) => console.error('Service Worker misslyckades:', err));
+  });
 }
