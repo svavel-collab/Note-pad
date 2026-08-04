@@ -14,15 +14,22 @@ const cancelBtn = document.getElementById('cancel-btn');
 const toast = document.getElementById('toast');
 const undoBtn = document.getElementById('undo-btn');
 
-// Robust datumformatering med fallback för saknade/felaktiga tidsstämplar
+// Smart datumformatering: visar enbart klockslag om anteckningen är från idag
 function formatDate(timestamp) {
   if (!timestamp) return '';
   const date = new Date(Number(timestamp) || timestamp);
   if (isNaN(date.getTime())) return '';
   
-  const dateStr = date.toLocaleDateString('sv-SE');
-  const timeStr = date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-  return `${dateStr} ${timeStr}`;
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+
+  if (isToday) {
+    return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+  } else {
+    const dateStr = date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
+    const timeStr = date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    return `${dateStr} ${timeStr}`;
+  }
 }
 
 function saveToStorage() {
@@ -37,7 +44,7 @@ function renderNotes(filter = '') {
     (n.content && n.content.toLowerCase().includes(filter.toLowerCase()))
   );
 
-  // Sortera nyast först (hanterar även saknat datum)
+  // Sortera nyast först
   filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
   filtered.forEach(note => {
