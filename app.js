@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('close-modal-btn').addEventListener('click', closeReadModal);
   document.getElementById('save-edit-btn').addEventListener('click', saveEditedNote);
 
+  // Koppla knappar för backup (export/import)
+  document.getElementById('export-btn').addEventListener('click', exportNotes);
+  document.getElementById('import-btn').addEventListener('click', () => {
+    document.getElementById('import-input').click();
+  });
+  document.getElementById('import-input').addEventListener('change', importNotes);
+
   // Ladda in sparade anteckningar från localStorage vid start
   loadNotes();
 });
@@ -87,7 +94,7 @@ function loadNotes() {
     // Klicka på radera-knappen
     const deleteBtn = card.querySelector('.btn-delete');
     deleteBtn.addEventListener('click', (event) => {
-      event.stopPropagation(); // Stoppa eventet så att inte edit-modalen öppnas samtidigt
+      event.stopPropagation();
       deleteNote(note.id);
     });
 
@@ -151,6 +158,53 @@ function deleteNote(id) {
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('notes', JSON.stringify(notes));
   loadNotes();
+}
+
+// EXPORT-FUNKTION
+function exportNotes() {
+  const notes = localStorage.getItem('notes') || '[]';
+  const blob = new Blob([notes], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const today = new Date().toISOString().split('T')[0];
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `anteckningar_backup_${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// IMPORT-FUNKTION
+function importNotes(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const importedNotes = JSON.parse(e.target.result);
+      
+      if (!Array.isArray(importedNotes)) {
+        throw new Error('Ogiltigt filformat');
+      }
+
+      if (!confirm('Vill du ersätta dina nuvarande anteckningar med filens innehåll?')) {
+        event.target.value = ''; // Återställ filväljaren
+        return;
+      }
+
+      localStorage.setItem('notes', JSON.stringify(importedNotes));
+      loadNotes();
+      alert('Anteckningarna har importerats!');
+    } catch (err) {
+      alert('Fel vid import: Filen innehåller inte giltig anteckningsdata.');
+    }
+    event.target.value = ''; // Återställ filväljaren för nästa gång
+  };
+
+  reader.readAsText(file);
 }
 
 function clearFields() {
