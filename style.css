@@ -2,12 +2,12 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: #0f0f10;
+  background-color: #121316;
   color: #e4e4e7;
   padding: 16px 12px;
 }
@@ -17,26 +17,35 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
-  padding: 0 2px;
 }
 
 #app-title {
   font-size: 1.4rem;
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
+/* Färgstark plusknapp */
 #add-btn {
-  background: none;
+  background: #2563eb;
+  color: #ffffff;
   border: none;
-  font-size: 1.8rem;
-  font-weight: 300;
-  color: #3b82f6; /* Disktret modern blå färg för primäråtgärd */
-  cursor: pointer;
-  padding: 0 4px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1.5rem;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
   -webkit-tap-highlight-color: transparent;
+}
+
+#add-btn:active {
+  transform: scale(0.95);
 }
 
 .search-container {
@@ -45,14 +54,13 @@ body {
 
 #search-input {
   width: 100%;
-  padding: 9px 12px;
+  padding: 10px 14px;
   font-size: 0.9rem;
   border: 1px solid #27272a;
-  border-radius: 8px;
-  background-color: #18181b;
+  border-radius: 10px;
+  background-color: #1c1d22;
   color: #ffffff;
   outline: none;
-  transition: border-color 0.2s ease;
 }
 
 #search-input:focus {
@@ -69,15 +77,15 @@ body {
   gap: 6px;
 }
 
-/* Kompakt rad med högre kontrast och bättre mikro-typografi */
+/* Kompakt rad med vänsterkant i färg */
 .note-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #18181b;
+  background: #1c1d22;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid #27272a;
+  border-left: 4px solid #3b82f6; /* Standard färgkant */
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -91,7 +99,7 @@ body {
 .note-title {
   font-weight: 500;
   font-size: 0.92rem;
-  color: #f4f4f5;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,20 +107,21 @@ body {
   margin-right: 12px;
 }
 
+/* Tydligare, ljusare datum */
 .note-meta {
   font-size: 0.75rem;
-  color: #a1a1aa; /* Högre kontrast för bättre läsbarhet */
-  font-variant-numeric: tabular-nums;
+  color: #9ca3af;
   white-space: nowrap;
   margin-right: 10px;
   flex-shrink: 0;
 }
 
+/* Röd radera-knapp vid tryck */
 .delete-btn {
   background: none;
   border: none;
-  color: #71717a;
-  font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
   padding: 4px;
@@ -128,7 +137,7 @@ body {
   display: none !important;
 }
 
-/* Editor & Toast behåller samma struktur */
+/* Editor */
 .editor {
   display: flex;
   flex-direction: column;
@@ -138,13 +147,17 @@ body {
 
 #note-title-input, #note-content-input {
   width: 100%;
-  padding: 10px;
+  padding: 10px 12px;
   border: 1px solid #27272a;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: #18181b;
+  background-color: #1c1d22;
   color: #ffffff;
   outline: none;
+}
+
+#note-title-input:focus, #note-content-input:focus {
+  border-color: #3b82f6;
 }
 
 #note-content-input {
@@ -168,7 +181,7 @@ body {
 }
 
 #save-btn {
-  background-color: #22c55e;
+  background-color: #10b981;
   color: white;
 }
 
@@ -177,6 +190,7 @@ body {
   color: white;
 }
 
+/* Toast */
 .toast {
   position: fixed;
   bottom: 24px;
