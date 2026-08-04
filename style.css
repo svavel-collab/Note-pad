@@ -23,13 +23,22 @@ body {
   color: #ffffff;
 }
 
-.header-actions button, #add-btn {
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+#add-btn {
   background: none;
   border: none;
-  font-size: 1.8rem;
-  cursor: pointer;
-  padding: 0 5px;
+  font-size: 2rem;
+  line-height: 1;
   color: #ffffff;
+  cursor: pointer;
+  padding: 5px 10px;
+  position: relative;
+  z-index: 10;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #settings-btn {
@@ -95,6 +104,7 @@ body {
   font-size: 1.1rem;
   cursor: pointer;
   padding: 4px 8px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .delete-btn:hover {
@@ -168,6 +178,7 @@ body {
   gap: 15px;
   align-items: center;
   box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+  z-index: 100;
 }
 
 #undo-btn {

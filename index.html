@@ -13,7 +13,7 @@
     <header class="app-header">
       <h1 id="app-title">Anteckningar</h1>
       <div class="header-actions">
-        <button id="add-btn" aria-label="Skapa ny anteckning">+</button>
+        <button id="add-btn" type="button" aria-label="Skapa ny anteckning">+</button>
         <button id="settings-btn" class="hidden">⚙</button>
       </div>
     </header>
@@ -32,8 +32,8 @@
       <textarea id="note-content-input" placeholder="Skriv din anteckning här..."></textarea>
       
       <div class="editor-actions">
-        <button id="cancel-btn">Avbryt</button>
-        <button id="save-btn">Spara</button>
+        <button id="cancel-btn" type="button">Avbryt</button>
+        <button id="save-btn" type="button">Spara</button>
       </div>
     </div>
   </div>
@@ -41,7 +41,7 @@
   <!-- Undo Toast -->
   <div id="toast" class="toast hidden">
     <span>Anteckning raderad</span>
-    <button id="undo-btn">Ångra</button>
+    <button id="undo-btn" type="button">Ångra</button>
   </div>
 
   <script src="app.js"></script>

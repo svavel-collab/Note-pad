@@ -71,17 +71,17 @@ function renderNotes(filter = '') {
     row.innerHTML = `
       <span class="note-title">${escapeHtml(note.title || 'Namnlös')}</span>
       <span class="note-meta">${formatDate(note.updatedAt)}</span>
-      <button class="delete-btn" aria-label="Radera">✕</button>
+      <button class="delete-btn" type="button" aria-label="Radera">✕</button>
     `;
 
-    // Klick på hela raden öppnar editorn för redigering
+    // Klick på raden öppnar anteckningen för redigering
     row.addEventListener('click', (e) => {
       if (!e.target.classList.contains('delete-btn')) {
         openEditor(note.id);
       }
     });
 
-    // Klick på X raderar
+    // Klick på X-knappen raderar
     const deleteBtn = row.querySelector('.delete-btn');
     if (deleteBtn) {
       deleteBtn.addEventListener('click', (e) => {
@@ -118,7 +118,7 @@ function openEditor(noteId = null) {
 
   if (notesListView) notesListView.classList.add('hidden');
   if (editorView) editorView.classList.remove('hidden');
-  noteTitleInput.focus();
+  if (noteTitleInput) noteTitleInput.focus();
 }
 
 // Actions
@@ -191,14 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initDOMElements();
   loadNotes();
 
-  // Koppla alla händelser säkert efter att DOM är laddad
-  if (addBtn) addBtn.onclick = () => openEditor();
-  if (saveBtn) saveBtn.onclick = saveCurrentNote;
-  if (cancelBtn) cancelBtn.onclick = showListView;
-  if (undoBtn) undoBtn.onclick = undoDelete;
+  // Säker koppling av händelselyssnare utan syntaxfel
+  if (addBtn) addBtn.addEventListener('click', () => openEditor());
+  if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
+  if (cancelBtn) cancelBtn.addEventListener('click', showListView);
+  if (undoBtn) undoBtn.addEventListener('click', undoDelete);
 
   if (searchInput) {
-    searchInput.oninput = (e) => renderNotes(e.target.value);
+    searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
   }
 
   renderNotes();
