@@ -1,200 +1,194 @@
-// --- DATALAGER ---
-let notes = JSON.parse(localStorage.getItem('bare_notes')) || [];
-let deletedNote = null;
-let deletedIndex = null;
-let toastTimeout = null;
+// LocalStorage Keys
+const STORAGE_KEY = 'minimalist_notes_app_data';
 
-// --- DOM-ELEMENT ---
-const notesContainer = document.getElementById('notesContainer');
-const searchInput = document.getElementById('searchInput');
-const modalOverlay = document.getElementById('modalOverlay');
-const modalTitle = document.getElementById('modalTitle');
-const noteForm = document.getElementById('noteForm');
-const noteIdInput = document.getElementById('noteId');
-const noteTitleInput = document.getElementById('noteTitle');
-const noteContentInput = document.getElementById('noteContent');
-const openModalBtn = document.getElementById('openModalBtn');
-const closeModalBtn = document.getElementById('closeModalBtn');
+// App State
+let notes = [];
+let currentNoteId = null;
+let lastDeletedNote = null;
+let undoTimeout = null;
+
+// DOM Elements
+const notesListView = document.getElementById('notes-list-view');
+const editorView = document.getElementById('editor-view');
+const notesList = document.getElementById('notes-list');
+const searchInput = document.getElementById('search-input');
+const addBtn = document.getElementById('add-btn');
+const noteTitleInput = document.getElementById('note-title-input');
+const noteContentInput = document.getElementById('note-content-input');
+const saveBtn = document.getElementById('save-btn');
+const cancelBtn = document.getElementById('cancel-btn');
 const toast = document.getElementById('toast');
-const undoBtn = document.getElementById('undoBtn');
+const undoBtn = document.getElementById('undo-btn');
 
-// --- HJÄLPFUNKTIONER ---
-function saveToStorage() {
-  localStorage.setItem('bare_notes', JSON.stringify(notes));
-}
-
-function escapeHTML(str) {
-  return str.replace(/[&<>'"]/g, 
-    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-  );
+// Helper Functions
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function formatDate(timestamp) {
   const date = new Date(timestamp);
-  
-  // Format: YY-MM-DD (t.ex. 26-08-04)
-  const yy = String(date.getFullYear()).slice(-2);
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  
-  // Format: HH:MM (t.ex. 03:15)
-  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  return `${yy}-${mm}-${dd} ${time}`;
+  return date.toLocaleString('sv-SE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
-// --- RENDERING ---
-function renderNotes(filterText = '') {
-  notesContainer.innerHTML = '';
+// Storage Operations
+function loadNotes() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  notes = data ? JSON.parse(data) : [];
+}
 
-  const filteredNotes = notes.filter(note => {
-    const text = filterText.toLowerCase();
-    return note.title.toLowerCase().includes(text) || note.content.toLowerCase().includes(text);
-  });
+function saveNotes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
 
-  if (filteredNotes.length === 0) {
-    notesContainer.innerHTML = `<div class="empty-state">${filterText ? 'Inga träffar' : 'Inga sparade anteckningar'}</div>`;
-    return;
-  }
-
-  // Sortera med nyast först
-  filteredNotes.sort((a, b) => b.updatedAt - a.updatedAt);
+// UI Rendering
+function renderNotes(filter = '') {
+  notesList.innerHTML = '';
+  
+  const filteredNotes = notes.filter(note => 
+    note.title.toLowerCase().includes(filter.toLowerCase()) || 
+    note.content.toLowerCase().includes(filter.toLowerCase())
+  );
 
   filteredNotes.forEach(note => {
-    const card = document.createElement('div');
-    card.className = 'note-card';
-    card.onclick = (e) => {
-      if (!e.target.classList.contains('delete-btn')) {
-        openModalForEdit(note.id);
-      }
-    };
-
-    card.innerHTML = `
-      <div class="note-info">
-        <span class="note-title">${escapeHTML(note.title)}</span>
-        <span class="note-date">${formatDate(note.updatedAt)}</span>
-      </div>
-      <button class="delete-btn" title="Radera">&times;</button>
+    const row = document.createElement('div');
+    row.className = 'note-row';
+    
+    // Rak struktur: Title -> Date/Time -> Delete
+    row.innerHTML = `
+      <span class="note-title">${escapeHtml(note.title || 'Namnlös')}</span>
+      <span class="note-meta">${formatDate(note.updatedAt)}</span>
+      <button class="delete-btn" aria-label="Radera">✕</button>
     `;
 
-    const deleteBtn = card.querySelector('.delete-btn');
-    deleteBtn.onclick = () => deleteNote(note.id);
+    row.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('delete-btn')) {
+        openEditor(note.id);
+      }
+    });
 
-    notesContainer.appendChild(card);
+    row.querySelector('.delete-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteNote(note.id);
+    });
+
+    notesList.appendChild(row);
   });
 }
 
-// --- MODAL-HANTERING ---
-function openModalForNew() {
-  modalTitle.textContent = 'Ny anteckning';
-  noteIdInput.value = '';
-  noteTitleInput.value = '';
-  noteContentInput.value = '';
-  modalOverlay.classList.add('active');
+// Navigation & Views
+function showListView() {
+  editorView.classList.add('hidden');
+  notesListView.classList.remove('hidden');
+  currentNoteId = null;
+  renderNotes(searchInput.value);
+}
+
+function openEditor(noteId = null) {
+  currentNoteId = noteId;
+  
+  if (noteId) {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      noteTitleInput.value = note.title;
+      noteContentInput.value = note.content;
+    }
+  } else {
+    noteTitleInput.value = '';
+    noteContentInput.value = '';
+  }
+
+  notesListView.classList.add('hidden');
+  editorView.classList.remove('hidden');
   noteTitleInput.focus();
 }
 
-function openModalForEdit(id) {
-  const note = notes.find(n => n.id === id);
-  if (!note) return;
-
-  modalTitle.textContent = 'Redigera anteckning';
-  noteIdInput.value = note.id;
-  noteTitleInput.value = note.title;
-  noteContentInput.value = note.content;
-  modalOverlay.classList.add('active');
-  noteTitleInput.focus();
-}
-
-function closeModal() {
-  modalOverlay.classList.remove('active');
-}
-
-// --- FORMULÄR OCH SPARA ---
-noteForm.onsubmit = (e) => {
-  e.preventDefault();
-  const id = noteIdInput.value;
+// Actions
+function saveCurrentNote() {
   const title = noteTitleInput.value.trim();
   const content = noteContentInput.value.trim();
 
-  if (!title || !content) return;
+  if (!title && !content) {
+    showListView();
+    return;
+  }
 
-  if (id) {
-    const index = notes.findIndex(n => n.id === id);
-    if (index !== -1) {
-      notes[index].title = title;
-      notes[index].content = content;
-      notes[index].updatedAt = Date.now();
+  const timestamp = Date.now();
+
+  if (currentNoteId) {
+    const note = notes.find(n => n.id === currentNoteId);
+    if (note) {
+      note.title = title;
+      note.content = content;
+      note.updatedAt = timestamp;
     }
   } else {
     const newNote = {
-      id: Date.now().toString(),
-      title: title,
-      content: content,
-      updatedAt: Date.now()
+      id: 'note_' + timestamp + '_' + Math.random().toString(36).substr(2, 9),
+      title,
+      content,
+      updatedAt: timestamp
     };
     notes.unshift(newNote);
   }
 
-  saveToStorage();
-  renderNotes(searchInput.value);
-  closeModal();
-};
-
-// --- RADERA OCH ÅNGRA ---
-function deleteNote(id) {
-  const index = notes.findIndex(n => n.id === id);
-  if (index === -1) return;
-
-  deletedNote = notes[index];
-  deletedIndex = index;
-
-  notes.splice(index, 1);
-  saveToStorage();
-  renderNotes(searchInput.value);
-
-  showToast();
+  saveNotes();
+  showListView();
 }
 
-function showToast() {
-  clearTimeout(toastTimeout);
-  toast.classList.add('visible');
+function deleteNote(noteId) {
+  const noteIndex = notes.findIndex(n => n.id === noteId);
+  if (noteIndex > -1) {
+    lastDeletedNote = { note: notes[noteIndex], index: noteIndex };
+    notes.splice(noteIndex, 1);
+    saveNotes();
+    renderNotes(searchInput.value);
+    showUndoToast();
+  }
+}
 
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove('visible');
-    deletedNote = null;
-    deletedIndex = null;
+function showUndoToast() {
+  clearTimeout(undoTimeout);
+  toast.classList.remove('hidden');
+  
+  undoTimeout = setTimeout(() => {
+    toast.classList.add('hidden');
+    lastDeletedNote = null;
   }, 4000);
 }
 
-undoBtn.onclick = () => {
-  if (deletedNote !== null && deletedIndex !== null) {
-    notes.splice(deletedIndex, 0, deletedNote);
-    saveToStorage();
+function undoDelete() {
+  if (lastDeletedNote) {
+    notes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
+    saveNotes();
     renderNotes(searchInput.value);
-    
-    toast.classList.remove('visible');
-    clearTimeout(toastTimeout);
-    deletedNote = null;
-    deletedIndex = null;
+    toast.classList.add('hidden');
+    lastDeletedNote = null;
+    clearTimeout(undoTimeout);
   }
-};
+}
 
-// --- EVENT LISTENERS ---
-openModalBtn.onclick = openModalForNew;
-closeModalBtn.onclick = closeModal;
-searchInput.oninput = (e) => renderNotes(e.target.value);
+// Event Listeners
+if (addBtn) addBtn.addEventListener('click', () => openEditor());
+if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
+if (cancelBtn) cancelBtn.addEventListener('click', showListView);
+if (undoBtn) undoBtn.addEventListener('click', undoDelete);
 
-modalOverlay.onclick = (e) => {
-  if (e.target === modalOverlay) closeModal();
-};
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('SW aktiv'))
-      .catch((err) => console.error('SW-fel:', err));
+if (searchInput) {
+  searchInput.addEventListener('input', (e) => {
+    renderNotes(e.target.value);
   });
 }
 
-renderNotes();
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+  loadNotes();
+  renderNotes();
+});

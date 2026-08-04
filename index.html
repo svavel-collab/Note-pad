@@ -4,294 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anteckningar</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#121214">
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: #121214;
-      color: #e0e0e0;
-      padding-bottom: 90px;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      background-color: #121214;
-      padding: 16px;
-      z-index: 10;
-      border-bottom: 1px solid #272727;
-    }
-
-    .search-box {
-      width: 100%;
-      background-color: #1e1e24;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 12px 16px;
-      color: #fff;
-      font-size: 16px;
-      outline: none;
-    }
-
-    .search-box:focus {
-      border-color: #007aff;
-    }
-
-    main {
-      padding: 16px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .note-card {
-      background-color: #1e1e24;
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      border: 1px solid #272727;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .note-info {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-right: 12px;
-      overflow: hidden;
-      gap: 12px;
-    }
-
-    .note-title {
-      font-size: 15px;
-      font-weight: 500;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .note-date {
-      font-size: 11px;
-      color: #707075;
-      white-space: nowrap;
-      font-variant-numeric: tabular-nums;
-      opacity: 0.85;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #ff453a;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 4px;
-      line-height: 1;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: #666;
-      margin-top: 60px;
-      font-size: 16px;
-    }
-
-    .fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 60px;
-      height: 60px;
-      border-radius: 30px;
-      background-color: #007aff;
-      color: #fff;
-      border: none;
-      font-size: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      z-index: 20;
-    }
-
-    .fab:active {
-      transform: scale(0.95);
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: flex-end;
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-content {
-      background-color: #1e1e24;
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-      transform: translateY(100%);
-      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
-    }
-
-    .modal-overlay.active .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-header h2 {
-      font-size: 18px;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      color: #8e8e93;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .input-field {
-      width: 100%;
-      background-color: #121214;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 12px;
-      color: #fff;
-      font-size: 15px;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    textarea.input-field {
-      height: 180px;
-      resize: none;
-    }
-
-    .save-btn {
-      width: 100%;
-      background-color: #007aff;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background-color: #2c2c2e;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 25px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      z-index: 200;
-      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
-    }
-
-    .toast.visible {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .undo-btn {
-      background: none;
-      border: none;
-      color: #0a84ff;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header>
-    <input 
-      type="text" 
-      id="searchInput" 
-      class="search-box" 
-      placeholder="Sök anteckningar..." 
-      autocomplete="off"
-    />
-  </header>
-
-  <main id="notesContainer"></main>
-
-  <button id="openModalBtn" class="fab" aria-label="Ny anteckning">+</button>
-
-  <div id="modalOverlay" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modalTitle">Ny anteckning</h2>
-        <button id="closeModalBtn" class="close-btn">Avbryt</button>
+  <!-- Listvy -->
+  <div id="notes-list-view">
+    <header class="app-header">
+      <h1 id="app-title">Anteckningar</h1>
+      <div class="header-actions">
+        <button id="add-btn" aria-label="Skapa ny anteckning">+</button>
+        <button id="settings-btn" class="hidden">⚙</button>
       </div>
-      <form id="noteForm">
-        <input type="hidden" id="noteId" />
-        <input 
-          type="text" 
-          id="noteTitle" 
-          class="input-field" 
-          placeholder="Titel..." 
-          required 
-          autocomplete="off"
-        />
-        <textarea 
-          id="noteContent" 
-          class="input-field" 
-          placeholder="Skriv din anteckning här..." 
-          required
-        ></textarea>
-        <button type="submit" class="save-btn">Spara</button>
-      </form>
+    </header>
+
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Sök anteckning...">
+    </div>
+
+    <div id="notes-list" class="notes-list"></div>
+  </div>
+
+  <!-- Redigeringsvy -->
+  <div id="editor-view" class="hidden">
+    <div class="editor">
+      <input type="text" id="note-title-input" placeholder="Titel">
+      <textarea id="note-content-input" placeholder="Skriv din anteckning här..."></textarea>
+      
+      <div class="editor-actions">
+        <button id="cancel-btn">Avbryt</button>
+        <button id="save-btn">Spara</button>
+      </div>
     </div>
   </div>
 
-  <div id="toast" class="toast">
+  <!-- Undo Toast -->
+  <div id="toast" class="toast hidden">
     <span>Anteckning raderad</span>
-    <button id="undoBtn" class="undo-btn">ÅNGRA</button>
+    <button id="undo-btn">Ångra</button>
   </div>
 
   <script src="app.js"></script>
