@@ -1,16 +1,20 @@
 {
-  "name": "Mina Anteckningar!",
-  "short_name": "Anteckningar!",
+  "name": "Anteckningar",
+  "short_name": "Anteckningar",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#121214",
-  "theme_color": "#121214",
+  "background_color": "#121212",
+  "theme_color": "#121212",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
