@@ -5,250 +5,293 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anteckningar</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-
+  <meta name="theme-color" content="#121214">
   <style>
-    :root {
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
-      --input-bg: #2d2d2d;
-      --text-main: #ffffff;
-      --text-muted: #aaaaaa;
-      --accent-color: #28a745;
-      --danger-color: #dc3545;
-      --border-color: #333333;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
+      background-color: #121214;
+      color: #e0e0e0;
+      padding-bottom: 90px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: #121214;
+      padding: 16px;
+      z-index: 10;
+      border-bottom: 1px solid #272727;
+    }
+
+    .search-box {
+      width: 100%;
+      background-color: #1e1e24;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .search-box:focus {
+      border-color: #007aff;
+    }
+
+    main {
       padding: 16px;
       max-width: 600px;
       margin: 0 auto;
     }
 
-    .app-header {
+    .note-card {
+      background-color: #1e1e24;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border: 1px solid #272727;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 16px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
     }
 
-    .app-header h1 {
-      font-size: 1.5rem;
+    .note-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-right: 12px;
+      overflow: hidden;
+      gap: 12px;
     }
 
-    .icon-btn {
-      background-color: var(--accent-color);
+    .note-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .note-date {
+      font-size: 11px;
+      color: #707075;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.85;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #ff453a;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      margin-top: 60px;
+      font-size: 16px;
+    }
+
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      background-color: #007aff;
       color: #fff;
       border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      font-size: 1.5rem;
-      line-height: 1;
-      cursor: pointer;
+      font-size: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .note-form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background-color: var(--card-bg);
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border: 1px solid var(--border-color);
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    input[type="text"], textarea {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background-color: var(--input-bg);
-      color: var(--text-main);
-      font-size: 1rem;
-    }
-
-    textarea {
-      height: 120px;
-      resize: vertical;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       cursor: pointer;
-      flex: 1;
+      z-index: 20;
     }
 
-    .btn-save {
-      background-color: var(--accent-color);
-      color: #fff;
+    .fab:active {
+      transform: scale(0.95);
     }
 
-    .btn-cancel {
-      background-color: #444444;
-      color: #fff;
-    }
-
-    .btn-secondary {
-      background-color: var(--input-bg);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-
-    .notes-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .note-card {
-      background-color: var(--card-bg);
-      padding: 16px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--border-color);
-      cursor: pointer;
-    }
-
-    .note-info h3 {
-      font-size: 1.1rem;
-      margin-bottom: 4px;
-      word-break: break-word;
-    }
-
-    .note-info small {
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    }
-
-    .btn-delete {
-      background-color: transparent;
-      color: var(--danger-color);
-      border: 1px solid var(--danger-color);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      margin-left: 12px;
-      white-space: nowrap;
-    }
-
-    .btn-delete:active {
-      background-color: var(--danger-color);
-      color: #fff;
-    }
-
-    .backup-actions {
-      margin-top: 32px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      gap: 10px;
-    }
-
-    .modal {
+    .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.85);
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-      z-index: 1000;
+      align-items: flex-end;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .modal-content {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 20px;
-      border-radius: 8px;
+      background-color: #1e1e24;
       width: 100%;
-      max-width: 500px;
-      max-height: 80vh;
+      max-width: 600px;
+      margin: 0 auto;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
     }
 
-    .modal-content small {
-      color: var(--text-muted);
+    .modal-header h2 {
+      font-size: 18px;
     }
 
-    .modal-content hr {
-      border: 0;
-      border-top: 1px solid var(--border-color);
+    .close-btn {
+      background: none;
+      border: none;
+      color: #8e8e93;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .input-field {
+      width: 100%;
+      background-color: #121214;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    textarea.input-field {
+      height: 180px;
+      resize: none;
+    }
+
+    .save-btn {
+      width: 100%;
+      background-color: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: #2c2c2e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .toast.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .undo-btn {
+      background: none;
+      border: none;
+      color: #0a84ff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <div class="app-header">
-    <h1>Anteckningar</h1>
-    <button id="toggle-form-btn" class="icon-btn">+</button>
-  </div>
+  <header>
+    <input 
+      type="text" 
+      id="searchInput" 
+      class="search-box" 
+      placeholder="Sök anteckningar..." 
+      autocomplete="off"
+    />
+  </header>
 
-  <div id="note-form" class="note-form hidden">
-    <input type="text" id="note-title" placeholder="Titel...">
-    <textarea id="note-content" placeholder="Skriv din anteckning här..."></textarea>
-    <div class="form-actions">
-      <button id="save-btn" class="btn btn-save">Spara</button>
-      <button id="cancel-btn" class="btn btn-cancel">Avbryt</button>
-    </div>
-  </div>
+  <main id="notesContainer"></main>
 
-  <div id="notes-list" class="notes-list"></div>
+  <button id="openModalBtn" class="fab" aria-label="Ny anteckning">+</button>
 
-  <!-- Sektion för Backup (Export / Import) -->
-  <div class="backup-actions">
-    <button id="export-btn" class="btn btn-secondary">Exportera backup</button>
-    <button id="import-btn" class="btn btn-secondary">Importera backup</button>
-    <input type="file" id="import-input" accept=".json" class="hidden">
-  </div>
-
-  <div id="read-modal" class="modal hidden">
+  <div id="modalOverlay" class="modal-overlay">
     <div class="modal-content">
-      <input type="text" id="edit-title" placeholder="Titel...">
-      <small id="view-date"></small>
-      <hr>
-      <textarea id="edit-body" placeholder="Skriv din anteckning här..."></textarea>
-      <div class="form-actions" style="margin-top: 10px;">
-        <button id="save-edit-btn" class="btn btn-save">Spara ändringar</button>
-        <button id="close-modal-btn" class="btn btn-cancel">Avbryt</button>
+      <div class="modal-header">
+        <h2 id="modalTitle">Ny anteckning</h2>
+        <button id="closeModalBtn" class="close-btn">Avbryt</button>
       </div>
+      <form id="noteForm">
+        <input type="hidden" id="noteId" />
+        <input 
+          type="text" 
+          id="noteTitle" 
+          class="input-field" 
+          placeholder="Titel..." 
+          required 
+          autocomplete="off"
+        />
+        <textarea 
+          id="noteContent" 
+          class="input-field" 
+          placeholder="Skriv din anteckning här..." 
+          required
+        ></textarea>
+        <button type="submit" class="save-btn">Spara</button>
+      </form>
     </div>
+  </div>
+
+  <div id="toast" class="toast">
+    <span>Anteckning raderad</span>
+    <button id="undoBtn" class="undo-btn">ÅNGRA</button>
   </div>
 
   <script src="app.js"></script>

@@ -1,227 +1,200 @@
-let currentEditingId = null;
+// --- DATALAGER ---
+let notes = JSON.parse(localStorage.getItem('bare_notes')) || [];
+let deletedNote = null;
+let deletedIndex = null;
+let toastTimeout = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Koppla knappar för att skapa nya anteckningar
-  document.getElementById('toggle-form-btn').addEventListener('click', toggleForm);
-  document.getElementById('cancel-btn').addEventListener('click', toggleForm);
-  document.getElementById('save-btn').addEventListener('click', saveNewNote);
+// --- DOM-ELEMENT ---
+const notesContainer = document.getElementById('notesContainer');
+const searchInput = document.getElementById('searchInput');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const noteForm = document.getElementById('noteForm');
+const noteIdInput = document.getElementById('noteId');
+const noteTitleInput = document.getElementById('noteTitle');
+const noteContentInput = document.getElementById('noteContent');
+const openModalBtn = document.getElementById('openModalBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const toast = document.getElementById('toast');
+const undoBtn = document.getElementById('undoBtn');
 
-  // Koppla knappar för redigeringsmodalen
-  document.getElementById('close-modal-btn').addEventListener('click', closeReadModal);
-  document.getElementById('save-edit-btn').addEventListener('click', saveEditedNote);
+// --- HJÄLPFUNKTIONER ---
+function saveToStorage() {
+  localStorage.setItem('bare_notes', JSON.stringify(notes));
+}
 
-  // Koppla knappar för backup (export/import)
-  document.getElementById('export-btn').addEventListener('click', exportNotes);
-  document.getElementById('import-btn').addEventListener('click', () => {
-    document.getElementById('import-input').click();
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g, 
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
+
+function formatDate(timestamp) {
+  const date = new Date(timestamp);
+  
+  // Format: YY-MM-DD (t.ex. 26-08-04)
+  const yy = String(date.getFullYear()).slice(-2);
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  
+  // Format: HH:MM (t.ex. 03:15)
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  return `${yy}-${mm}-${dd} ${time}`;
+}
+
+// --- RENDERING ---
+function renderNotes(filterText = '') {
+  notesContainer.innerHTML = '';
+
+  const filteredNotes = notes.filter(note => {
+    const text = filterText.toLowerCase();
+    return note.title.toLowerCase().includes(text) || note.content.toLowerCase().includes(text);
   });
-  document.getElementById('import-input').addEventListener('change', importNotes);
 
-  // Ladda in sparade anteckningar från localStorage vid start
-  loadNotes();
-});
-
-function toggleForm() {
-  const form = document.getElementById('note-form');
-  form.classList.toggle('hidden');
-  
-  if (form.classList.contains('hidden')) {
-    clearFields();
-  }
-}
-
-function saveNewNote() {
-  const titleInput = document.getElementById('note-title');
-  const contentInput = document.getElementById('note-content');
-  
-  const title = titleInput.value.trim();
-  const content = contentInput.value.trim();
-
-  if (!title) {
-    alert('Vänligen fyll i en titel.');
+  if (filteredNotes.length === 0) {
+    notesContainer.innerHTML = `<div class="empty-state">${filterText ? 'Inga träffar' : 'Inga sparade anteckningar'}</div>`;
     return;
   }
 
-  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+  // Sortera med nyast först
+  filteredNotes.sort((a, b) => b.updatedAt - a.updatedAt);
 
-  const newNote = {
-    id: Date.now(),
-    title: title,
-    content: content,
-    date: new Date().toLocaleDateString('sv-SE', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-  };
-
-  notes.unshift(newNote);
-  localStorage.setItem('notes', JSON.stringify(notes));
-
-  clearFields();
-  toggleForm();
-  loadNotes();
-}
-
-function loadNotes() {
-  const notesList = document.getElementById('notes-list');
-  notesList.innerHTML = '';
-
-  const notes = JSON.parse(localStorage.getItem('notes')) || [];
-
-  if (notes.length === 0) {
-    notesList.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Inga anteckningar sparade.</p>';
-    return;
-  }
-
-  notes.forEach(note => {
+  filteredNotes.forEach(note => {
     const card = document.createElement('div');
     card.className = 'note-card';
+    card.onclick = (e) => {
+      if (!e.target.classList.contains('delete-btn')) {
+        openModalForEdit(note.id);
+      }
+    };
 
     card.innerHTML = `
       <div class="note-info">
-        <h3>${escapeHtml(note.title)}</h3>
-        <small>${note.date}</small>
+        <span class="note-title">${escapeHTML(note.title)}</span>
+        <span class="note-date">${formatDate(note.updatedAt)}</span>
       </div>
-      <button class="btn-delete">Radera</button>
+      <button class="delete-btn" title="Radera">&times;</button>
     `;
 
-    // Klicka på kortet för att öppna och redigera
-    card.addEventListener('click', () => {
-      openNote(note.id);
-    });
+    const deleteBtn = card.querySelector('.delete-btn');
+    deleteBtn.onclick = () => deleteNote(note.id);
 
-    // Klicka på radera-knappen
-    const deleteBtn = card.querySelector('.btn-delete');
-    deleteBtn.addEventListener('click', (event) => {
-      event.stopPropagation();
-      deleteNote(note.id);
-    });
-
-    notesList.appendChild(card);
+    notesContainer.appendChild(card);
   });
 }
 
-function openNote(id) {
-  const notes = JSON.parse(localStorage.getItem('notes')) || [];
+// --- MODAL-HANTERING ---
+function openModalForNew() {
+  modalTitle.textContent = 'Ny anteckning';
+  noteIdInput.value = '';
+  noteTitleInput.value = '';
+  noteContentInput.value = '';
+  modalOverlay.classList.add('active');
+  noteTitleInput.focus();
+}
+
+function openModalForEdit(id) {
   const note = notes.find(n => n.id === id);
+  if (!note) return;
 
-  if (note) {
-    currentEditingId = id;
-    document.getElementById('edit-title').value = note.title;
-    document.getElementById('view-date').innerText = 'Skapad: ' + note.date;
-    document.getElementById('edit-body').value = note.content || '';
-    document.getElementById('read-modal').classList.remove('hidden');
-  }
+  modalTitle.textContent = 'Redigera anteckning';
+  noteIdInput.value = note.id;
+  noteTitleInput.value = note.title;
+  noteContentInput.value = note.content;
+  modalOverlay.classList.add('active');
+  noteTitleInput.focus();
 }
 
-function saveEditedNote() {
-  if (!currentEditingId) return;
+function closeModal() {
+  modalOverlay.classList.remove('active');
+}
 
-  const newTitle = document.getElementById('edit-title').value.trim();
-  const newContent = document.getElementById('edit-body').value.trim();
+// --- FORMULÄR OCH SPARA ---
+noteForm.onsubmit = (e) => {
+  e.preventDefault();
+  const id = noteIdInput.value;
+  const title = noteTitleInput.value.trim();
+  const content = noteContentInput.value.trim();
 
-  if (!newTitle) {
-    alert('Titeln kan inte vara tom.');
-    return;
-  }
+  if (!title || !content) return;
 
-  let notes = JSON.parse(localStorage.getItem('notes')) || [];
-  
-  notes = notes.map(note => {
-    if (note.id === currentEditingId) {
-      return {
-        ...note,
-        title: newTitle,
-        content: newContent
-      };
+  if (id) {
+    const index = notes.findIndex(n => n.id === id);
+    if (index !== -1) {
+      notes[index].title = title;
+      notes[index].content = content;
+      notes[index].updatedAt = Date.now();
     }
-    return note;
-  });
+  } else {
+    const newNote = {
+      id: Date.now().toString(),
+      title: title,
+      content: content,
+      updatedAt: Date.now()
+    };
+    notes.unshift(newNote);
+  }
 
-  localStorage.setItem('notes', JSON.stringify(notes));
-  closeReadModal();
-  loadNotes();
-}
+  saveToStorage();
+  renderNotes(searchInput.value);
+  closeModal();
+};
 
-function closeReadModal() {
-  currentEditingId = null;
-  document.getElementById('read-modal').classList.add('hidden');
-}
-
+// --- RADERA OCH ÅNGRA ---
 function deleteNote(id) {
-  if (!confirm('Är du säker på att du vill radera anteckningen?')) {
-    return;
+  const index = notes.findIndex(n => n.id === id);
+  if (index === -1) return;
+
+  deletedNote = notes[index];
+  deletedIndex = index;
+
+  notes.splice(index, 1);
+  saveToStorage();
+  renderNotes(searchInput.value);
+
+  showToast();
+}
+
+function showToast() {
+  clearTimeout(toastTimeout);
+  toast.classList.add('visible');
+
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('visible');
+    deletedNote = null;
+    deletedIndex = null;
+  }, 4000);
+}
+
+undoBtn.onclick = () => {
+  if (deletedNote !== null && deletedIndex !== null) {
+    notes.splice(deletedIndex, 0, deletedNote);
+    saveToStorage();
+    renderNotes(searchInput.value);
+    
+    toast.classList.remove('visible');
+    clearTimeout(toastTimeout);
+    deletedNote = null;
+    deletedIndex = null;
   }
+};
 
-  let notes = JSON.parse(localStorage.getItem('notes')) || [];
-  notes = notes.filter(note => note.id !== id);
-  localStorage.setItem('notes', JSON.stringify(notes));
-  loadNotes();
-}
+// --- EVENT LISTENERS ---
+openModalBtn.onclick = openModalForNew;
+closeModalBtn.onclick = closeModal;
+searchInput.oninput = (e) => renderNotes(e.target.value);
 
-// EXPORT-FUNKTION
-function exportNotes() {
-  const notes = localStorage.getItem('notes') || '[]';
-  const blob = new Blob([notes], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
-  const today = new Date().toISOString().split('T')[0];
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `anteckningar_backup_${today}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// IMPORT-FUNKTION
-function importNotes(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const importedNotes = JSON.parse(e.target.result);
-      
-      if (!Array.isArray(importedNotes)) {
-        throw new Error('Ogiltigt filformat');
-      }
-
-      if (!confirm('Vill du ersätta dina nuvarande anteckningar med filens innehåll?')) {
-        event.target.value = ''; // Återställ filväljaren
-        return;
-      }
-
-      localStorage.setItem('notes', JSON.stringify(importedNotes));
-      loadNotes();
-      alert('Anteckningarna har importerats!');
-    } catch (err) {
-      alert('Fel vid import: Filen innehåller inte giltig anteckningsdata.');
-    }
-    event.target.value = ''; // Återställ filväljaren för nästa gång
-  };
-
-  reader.readAsText(file);
-}
-
-function clearFields() {
-  document.getElementById('note-title').value = '';
-  document.getElementById('note-content').value = '';
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.innerText = text;
-  return div.innerHTML;
-}
+modalOverlay.onclick = (e) => {
+  if (e.target === modalOverlay) closeModal();
+};
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then((reg) => console.log('Service Worker registrerad:', reg.scope))
-      .catch((err) => console.error('Service Worker misslyckades:', err));
+      .then(() => console.log('SW aktiv'))
+      .catch((err) => console.error('SW-fel:', err));
   });
 }
+
+renderNotes();
