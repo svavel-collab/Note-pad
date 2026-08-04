@@ -66,44 +66,51 @@ body {
 .notes-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px; /* Mindre avstånd mellan raderna */
 }
 
+/* Kompakt rad-höjd */
 .note-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #1e1e1e;
-  padding: 12px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  padding: 6px 10px; /* Betydligt mindre padding för tunn höjd */
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .note-title {
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.95rem;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-grow: 1;
-  margin-right: 12px;
+  margin-right: 10px;
 }
 
 .note-meta {
-  font-size: 0.8rem;
-  color: #aaa;
+  font-size: 0.75rem;
+  color: #888;
   white-space: nowrap;
-  margin-right: 12px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .delete-btn {
   background: none;
   border: none;
   color: #888;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  line-height: 1;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 2px 6px;
+  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
