@@ -26,7 +26,27 @@ body {
   letter-spacing: -0.3px;
 }
 
-/* Färgstark plusknapp */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#search-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.8;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#search-toggle-btn:active {
+  opacity: 1;
+  transform: scale(0.92);
+}
+
 #add-btn {
   background: #2563eb;
   color: #ffffff;
@@ -48,16 +68,20 @@ body {
   transform: scale(0.95);
 }
 
+/* Sök & Filterpanel */
 .search-container {
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 #search-input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 12px;
   font-size: 0.9rem;
   border: 1px solid #27272a;
-  border-radius: 10px;
+  border-radius: 8px;
   background-color: #1c1d22;
   color: #ffffff;
   outline: none;
@@ -71,13 +95,39 @@ body {
   color: #71717a;
 }
 
+/* Filter-knappar (Chips) */
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.chip {
+  background: #1c1d22;
+  border: 1px solid #27272a;
+  color: #9ca3af;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chip.active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  font-weight: 500;
+}
+
 .notes-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Kompakt rad med vänsterkant i färg */
 .note-row {
   display: flex;
   align-items: center;
@@ -85,7 +135,7 @@ body {
   background: #1c1d22;
   padding: 8px 12px;
   border-radius: 8px;
-  border-left: 4px solid #3b82f6; /* Standard färgkant */
+  border-left: 4px solid #3b82f6;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -107,7 +157,6 @@ body {
   margin-right: 12px;
 }
 
-/* Tydligare, ljusare datum */
 .note-meta {
   font-size: 0.75rem;
   color: #9ca3af;
@@ -116,7 +165,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Röd radera-knapp vid tryck */
 .delete-btn {
   background: none;
   border: none;
@@ -190,7 +238,6 @@ body {
   color: white;
 }
 
-/* Toast */
 .toast {
   position: fixed;
   bottom: 24px;

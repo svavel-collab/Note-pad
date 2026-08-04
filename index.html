@@ -2,50 +2,54 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anteckningar</title>
-  
-  <!-- PWA & Web App Inställningar -->
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icon.png">
-  <meta name="theme-color" content="#121212">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
-  <!-- CSS med versionsparameter för cache-busting -->
-  <link rel="stylesheet" href="./style.css?v=2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#121316">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app-header">
+  <header class="app-header">
     <h1 id="app-title">Anteckningar</h1>
     <div class="header-actions">
-      <button id="add-btn" aria-label="Skapa ny anteckning">+</button>
+      <button id="search-toggle-btn" aria-label="Sök">🔍</button>
+      <button id="add-btn" aria-label="Ny anteckning">+</button>
+    </div>
+  </header>
+
+  <!-- Sök & Filterpanel (Dold som standard) -->
+  <div class="search-container hidden" id="search-container">
+    <input type="text" id="search-input" placeholder="Sök på titel...">
+    
+    <div class="filter-chips">
+      <button class="chip active" data-days="all">Alla</button>
+      <button class="chip" data-days="1">Idag</button>
+      <button class="chip" data-days="7">7 dagarna</button>
+      <button class="chip" data-days="30">30 dagarna</button>
     </div>
   </div>
 
-  <div class="search-container">
-    <input type="text" id="search-input" placeholder="Sök anteckningar...">
-  </div>
+  <main id="notes-list" class="notes-list"></main>
 
-  <div id="notes-list" class="notes-list">
-    <!-- Anteckningsrader läggs till dynamiskt via app.js -->
-  </div>
-
+  <!-- Editor (Dold som standard) -->
   <div id="editor" class="editor hidden">
     <input type="text" id="note-title-input" placeholder="Titel">
-    <textarea id="note-content-input" placeholder="Skriv din anteckning här..."></textarea>
+    <textarea id="note-content-input" placeholder="Skriv anteckning..."></textarea>
     <div class="editor-actions">
       <button id="save-btn">Spara</button>
       <button id="cancel-btn">Avbryt</button>
     </div>
   </div>
 
+  <!-- Ångra-toast -->
   <div id="toast" class="toast hidden">
     <span>Anteckning raderad</span>
-    <button id="undo-btn">Ångra</button>
+    <button id="undo-btn">ÅNGRA</button>
   </div>
 
-  <script src="./app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -2,19 +2,24 @@ let notes = JSON.parse(localStorage.getItem('notes')) || [];
 let activeNoteId = null;
 let lastDeletedNote = null;
 let toastTimeout = null;
+let activeTimeFilter = 'all'; // 'all', '1', '7', '30'
 
 const notesList = document.getElementById('notes-list');
 const editor = document.getElementById('editor');
 const noteTitleInput = document.getElementById('note-title-input');
 const noteContentInput = document.getElementById('note-content-input');
+const searchToggleBtn = document.getElementById('search-toggle-btn');
+const searchContainer = document.getElementById('search-container');
 const searchInput = document.getElementById('search-input');
+const filterChips = document.querySelectorAll('.chip');
 const addBtn = document.getElementById('add-btn');
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 const toast = document.getElementById('toast');
 const undoBtn = document.getElementById('undo-btn');
 
-// Smart datumformatering: visar enbart klockslag om anteckningen är från idag
+const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+
 function formatDate(timestamp) {
   if (!timestamp) return '';
   const date = new Date(Number(timestamp) || timestamp);
@@ -36,20 +41,40 @@ function saveToStorage() {
   localStorage.setItem('notes', JSON.stringify(notes));
 }
 
-function renderNotes(filter = '') {
+function renderNotes() {
   notesList.innerHTML = '';
-  
-  const filtered = notes.filter(n => 
-    (n.title && n.title.toLowerCase().includes(filter.toLowerCase())) || 
-    (n.content && n.content.toLowerCase().includes(filter.toLowerCase()))
-  );
+  const query = searchInput.value.trim().toLowerCase();
+  const now = Date.now();
 
-  // Sortera nyast först
+  const filtered = notes.filter(note => {
+    // 1. Filter på enbart titel
+    const titleMatch = (note.title || '').toLowerCase().includes(query);
+    if (!titleMatch) return false;
+
+    // 2. Filter på tidsintervall
+    if (activeTimeFilter === 'all') return true;
+
+    const noteTime = Number(note.updatedAt) || 0;
+    const daysDiff = (now - noteTime) / (1000 * 60 * 60 * 24);
+
+    if (activeTimeFilter === '1') {
+      const noteDate = new Date(noteTime).toDateString();
+      const todayDate = new Date().toDateString();
+      return noteDate === todayDate;
+    }
+
+    if (activeTimeFilter === '7') return daysDiff <= 7;
+    if (activeTimeFilter === '30') return daysDiff <= 30;
+
+    return true;
+  });
+
   filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-  filtered.forEach(note => {
+  filtered.forEach((note, index) => {
     const row = document.createElement('div');
     row.className = 'note-row';
+    row.style.borderLeftColor = colors[index % colors.length];
     
     const titleEl = document.createElement('span');
     titleEl.className = 'note-title';
@@ -79,6 +104,38 @@ function renderNotes(filter = '') {
   });
 }
 
+// Sökknapp – fäll ut / dölj panelen
+searchToggleBtn.addEventListener('click', () => {
+  const isHidden = searchContainer.classList.toggle('hidden');
+  if (!isHidden) {
+    searchInput.focus();
+  } else {
+    searchInput.value = '';
+    activeTimeFilter = 'all';
+    updateChipUI();
+    renderNotes();
+  }
+});
+
+// Tid-filter klick
+filterChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    activeTimeFilter = chip.getAttribute('data-days');
+    updateChipUI();
+    renderNotes();
+  });
+});
+
+function updateChipUI() {
+  filterChips.forEach(c => {
+    if (c.getAttribute('data-days') === activeTimeFilter) {
+      c.classList.add('active');
+    } else {
+      c.classList.remove('active');
+    }
+  });
+}
+
 function openEditor(id = null) {
   activeNoteId = id;
   if (id) {
@@ -92,7 +149,7 @@ function openEditor(id = null) {
     noteContentInput.value = '';
   }
   notesList.classList.add('hidden');
-  document.querySelector('.search-container').classList.add('hidden');
+  searchContainer.classList.add('hidden');
   editor.classList.remove('hidden');
 }
 
@@ -100,8 +157,7 @@ function closeEditor() {
   activeNoteId = null;
   editor.classList.add('hidden');
   notesList.classList.remove('hidden');
-  document.querySelector('.search-container').classList.remove('hidden');
-  renderNotes(searchInput.value);
+  renderNotes();
 }
 
 function saveNote() {
@@ -141,7 +197,7 @@ function deleteNote(id) {
     lastDeletedNote = { note: notes[index], index };
     notes.splice(index, 1);
     saveToStorage();
-    renderNotes(searchInput.value);
+    renderNotes();
     showToast();
   }
 }
@@ -160,14 +216,14 @@ undoBtn.addEventListener('click', () => {
     saveToStorage();
     lastDeletedNote = null;
     toast.classList.add('hidden');
-    renderNotes(searchInput.value);
+    renderNotes();
   }
 });
 
 addBtn.addEventListener('click', () => openEditor());
 saveBtn.addEventListener('click', saveNote);
 cancelBtn.addEventListener('click', closeEditor);
-searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
+searchInput.addEventListener('input', () => renderNotes());
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
