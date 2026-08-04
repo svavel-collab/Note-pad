@@ -13,6 +13,7 @@
   <header class="app-header">
     <h1 id="app-title">Anteckningar</h1>
     <div class="header-actions">
+      <button id="trash-toggle-btn" aria-label="Papperskorg" title="Papperskorg">🗑️</button>
       <button id="sort-btn" aria-label="Sortera" title="Sortera">⇅</button>
       <button id="search-toggle-btn" aria-label="Sök">🔍</button>
       <button id="add-btn" aria-label="Skapa anteckning">+</button>
@@ -31,10 +32,11 @@
 
   <main id="notes-list" class="notes-list"></main>
 
+  <section id="trash-list" class="notes-list hidden"></section>
+
   <section id="editor" class="editor hidden">
     <input type="text" id="note-title-input" placeholder="Titel">
     
-    <!-- Färgval för kategori -->
     <div class="color-picker" id="color-picker">
       <button type="button" class="color-dot active" data-color="#3b82f6" style="background-color: #3b82f6;"></button>
       <button type="button" class="color-dot" data-color="#10b981" style="background-color: #10b981;"></button>
@@ -51,7 +53,7 @@
   </section>
 
   <div id="toast" class="toast hidden">
-    <span>Anteckning raderad</span>
+    <span>Flyttad till papperskorgen</span>
     <button id="undo-btn">Ångra</button>
   </div>
 

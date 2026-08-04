@@ -32,7 +32,7 @@ body {
   gap: 10px;
 }
 
-#sort-btn, #search-toggle-btn {
+#trash-toggle-btn, #sort-btn, #search-toggle-btn {
   background: none;
   border: none;
   font-size: 1.1rem;
@@ -42,7 +42,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-#sort-btn:active, #search-toggle-btn:active {
+#trash-toggle-btn.active {
+  color: #ef4444;
+}
+
+#trash-toggle-btn:active, #sort-btn:active, #search-toggle-btn:active {
   color: #ffffff;
   transform: scale(0.92);
 }
@@ -177,7 +181,13 @@ body {
   flex-shrink: 0;
 }
 
-.delete-btn {
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.delete-btn, .restore-btn {
   background: none;
   border: none;
   color: #6b7280;
@@ -191,6 +201,10 @@ body {
 
 .delete-btn:active {
   color: #ef4444;
+}
+
+.restore-btn:active {
+  color: #10b981;
 }
 
 .hidden {
@@ -225,7 +239,6 @@ body {
   resize: vertical;
 }
 
-/* Color Picker i Editorn */
 .color-picker {
   display: flex;
   gap: 10px;
@@ -295,4 +308,11 @@ body {
   color: #60a5fa;
   font-weight: 600;
   cursor: pointer;
+}
+
+.empty-msg {
+  text-align: center;
+  color: #71717a;
+  font-size: 0.9rem;
+  padding: 24px 0;
 }

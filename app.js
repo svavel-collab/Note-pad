@@ -1,17 +1,22 @@
 let notes = JSON.parse(localStorage.getItem('notes')) || [];
+let trashNotes = JSON.parse(localStorage.getItem('trashNotes')) || [];
 let activeNoteId = null;
 let lastDeletedNote = null;
 let toastTimeout = null;
 let activeTimeFilter = 'all';
-let currentSortMode = 'date'; // 'date', 'alpha', 'color'
+let currentSortMode = 'date';
 let selectedColor = '#3b82f6';
+let isTrashView = false;
 
+const appTitle = document.getElementById('app-title');
 const notesList = document.getElementById('notes-list');
+const trashList = document.getElementById('trash-list');
 const editor = document.getElementById('editor');
 const noteTitleInput = document.getElementById('note-title-input');
 const noteContentInput = document.getElementById('note-content-input');
 const searchToggleBtn = document.getElementById('search-toggle-btn');
 const sortBtn = document.getElementById('sort-btn');
+const trashToggleBtn = document.getElementById('trash-toggle-btn');
 const searchContainer = document.getElementById('search-container');
 const searchInput = document.getElementById('search-input');
 const filterChips = document.querySelectorAll('.chip');
@@ -41,6 +46,7 @@ function formatDate(timestamp) {
 
 function saveToStorage() {
   localStorage.setItem('notes', JSON.stringify(notes));
+  localStorage.setItem('trashNotes', JSON.stringify(trashNotes));
 }
 
 function renderNotes() {
@@ -69,7 +75,6 @@ function renderNotes() {
     return true;
   });
 
-  // Sortering
   filtered.sort((a, b) => {
     if (currentSortMode === 'alpha') {
       return (a.title || '').localeCompare(b.title || '', 'sv');
@@ -78,7 +83,6 @@ function renderNotes() {
       if (colorComp !== 0) return colorComp;
       return (b.updatedAt || 0) - (a.updatedAt || 0);
     } else {
-      // Datum (standard)
       return (b.updatedAt || 0) - (a.updatedAt || 0);
     }
   });
@@ -96,7 +100,6 @@ function renderNotes() {
     titleEl.textContent = note.title || 'Namnlös';
 
     const cleanContent = (note.content || '').replace(/\s+/g, ' ').trim();
-    
     contentBox.appendChild(titleEl);
     
     if (cleanContent) {
@@ -113,11 +116,11 @@ function renderNotes() {
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.textContent = '✕';
-    delBtn.setAttribute('aria-label', 'Radera');
+    delBtn.setAttribute('aria-label', 'Flytta till papperskorg');
     
     delBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      deleteNote(note.id);
+      moveToTrash(note.id);
     });
 
     row.appendChild(contentBox);
@@ -130,7 +133,103 @@ function renderNotes() {
   });
 }
 
-// Sorteringsknapp
+function renderTrash() {
+  trashList.innerHTML = '';
+
+  if (trashNotes.length === 0) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.className = 'empty-msg';
+    emptyMsg.textContent = 'Papperskorgen är tom';
+    trashList.appendChild(emptyMsg);
+    return;
+  }
+
+  trashNotes.forEach((note) => {
+    const row = document.createElement('div');
+    row.className = 'note-row';
+    row.style.borderLeftColor = note.color || '#3b82f6';
+    
+    const contentBox = document.createElement('div');
+    contentBox.className = 'note-content-preview';
+
+    const titleEl = document.createElement('span');
+    titleEl.className = 'note-title';
+    titleEl.textContent = note.title || 'Namnlös';
+
+    const cleanContent = (note.content || '').replace(/\s+/g, ' ').trim();
+    contentBox.appendChild(titleEl);
+    
+    if (cleanContent) {
+      const snippetEl = document.createElement('span');
+      snippetEl.className = 'note-snippet';
+      snippetEl.textContent = cleanContent;
+      contentBox.appendChild(snippetEl);
+    }
+
+    const metaEl = document.createElement('span');
+    metaEl.className = 'note-meta';
+    metaEl.textContent = formatDate(note.updatedAt);
+
+    const actionsBox = document.createElement('div');
+    actionsBox.className = 'row-actions';
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.className = 'restore-btn';
+    restoreBtn.textContent = '↩';
+    restoreBtn.setAttribute('aria-label', 'Återställ');
+    restoreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      restoreFromTrash(note.id);
+    });
+
+    const permDelBtn = document.createElement('button');
+    permDelBtn.className = 'delete-btn';
+    permDelBtn.textContent = '✕';
+    permDelBtn.setAttribute('aria-label', 'Radera permanent');
+    permDelBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deletePermanently(note.id);
+    });
+
+    actionsBox.appendChild(restoreBtn);
+    actionsBox.appendChild(permDelBtn);
+
+    row.appendChild(contentBox);
+    row.appendChild(metaEl);
+    row.appendChild(actionsBox);
+
+    trashList.appendChild(row);
+  });
+}
+
+// Papperskorgs-vy toggle
+trashToggleBtn.addEventListener('click', () => {
+  isTrashView = !isTrashView;
+  
+  if (isTrashView) {
+    appTitle.textContent = 'Papperskorg';
+    trashToggleBtn.classList.add('active');
+    notesList.classList.add('hidden');
+    searchContainer.classList.add('hidden');
+    editor.classList.add('hidden');
+    addBtn.classList.add('hidden');
+    sortBtn.classList.add('hidden');
+    searchToggleBtn.classList.add('hidden');
+    trashList.classList.remove('hidden');
+    renderTrash();
+  } else {
+    appTitle.textContent = 'Anteckningar';
+    trashToggleBtn.classList.remove('active');
+    trashList.classList.add('hidden');
+    notesList.classList.remove('hidden');
+    addBtn.classList.remove('hidden');
+    sortBtn.classList.remove('hidden');
+    searchToggleBtn.classList.remove('hidden');
+    renderNotes();
+  }
+});
+
+// Sortering
 sortBtn.addEventListener('click', () => {
   if (currentSortMode === 'date') {
     currentSortMode = 'alpha';
@@ -145,7 +244,7 @@ sortBtn.addEventListener('click', () => {
   renderNotes();
 });
 
-// Sök-toggle
+// Sök
 searchToggleBtn.addEventListener('click', () => {
   const isHidden = searchContainer.classList.toggle('hidden');
   if (!isHidden) {
@@ -176,7 +275,6 @@ function updateChipUI() {
   });
 }
 
-// Färgval i editorn
 colorDots.forEach(dot => {
   dot.addEventListener('click', () => {
     colorDots.forEach(d => d.classList.remove('active'));
@@ -255,14 +353,34 @@ function saveNote() {
   closeEditor();
 }
 
-function deleteNote(id) {
+function moveToTrash(id) {
   const index = notes.findIndex(n => n.id === id);
   if (index !== -1) {
-    lastDeletedNote = { note: notes[index], index };
-    notes.splice(index, 1);
+    const [removedNote] = notes.splice(index, 1);
+    trashNotes.unshift(removedNote);
+    lastDeletedNote = removedNote;
     saveToStorage();
     renderNotes();
     showToast();
+  }
+}
+
+function restoreFromTrash(id) {
+  const index = trashNotes.findIndex(n => n.id === id);
+  if (index !== -1) {
+    const [restoredNote] = trashNotes.splice(index, 1);
+    notes.unshift(restoredNote);
+    saveToStorage();
+    renderTrash();
+  }
+}
+
+function deletePermanently(id) {
+  const index = trashNotes.findIndex(n => n.id === id);
+  if (index !== -1) {
+    trashNotes.splice(index, 1);
+    saveToStorage();
+    renderTrash();
   }
 }
 
@@ -276,11 +394,9 @@ function showToast() {
 
 undoBtn.addEventListener('click', () => {
   if (lastDeletedNote) {
-    notes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
-    saveToStorage();
+    restoreFromTrash(lastDeletedNote.id);
     lastDeletedNote = null;
     toast.classList.add('hidden');
-    renderNotes();
   }
 });
 
