@@ -1,204 +1,163 @@
-// LocalStorage Keys
-const STORAGE_KEY = 'minimalist_notes_app_data';
-
-// App State
-let notes = [];
-let currentNoteId = null;
+let notes = JSON.parse(localStorage.getItem('notes')) || [];
+let activeNoteId = null;
 let lastDeletedNote = null;
-let undoTimeout = null;
+let toastTimeout = null;
 
-// DOM Elements
-let notesListView, editorView, notesList, searchInput, addBtn, noteTitleInput, noteContentInput, saveBtn, cancelBtn, toast, undoBtn;
-
-function initDOMElements() {
-  notesListView = document.getElementById('notes-list-view');
-  editorView = document.getElementById('editor-view');
-  notesList = document.getElementById('notes-list');
-  searchInput = document.getElementById('search-input');
-  addBtn = document.getElementById('add-btn');
-  noteTitleInput = document.getElementById('note-title-input');
-  noteContentInput = document.getElementById('note-content-input');
-  saveBtn = document.getElementById('save-btn');
-  cancelBtn = document.getElementById('cancel-btn');
-  toast = document.getElementById('toast');
-  undoBtn = document.getElementById('undo-btn');
-}
-
-// Helper Functions
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+const notesList = document.getElementById('notes-list');
+const editor = document.getElementById('editor');
+const noteTitleInput = document.getElementById('note-title-input');
+const noteContentInput = document.getElementById('note-content-input');
+const searchInput = document.getElementById('search-input');
+const addBtn = document.getElementById('add-btn');
+const saveBtn = document.getElementById('save-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+const toast = document.getElementById('toast');
+const undoBtn = document.getElementById('undo-btn');
 
 function formatDate(timestamp) {
   const date = new Date(timestamp);
-  return date.toLocaleString('sv-SE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const dateStr = date.toLocaleDateString('sv-SE');
+  const timeStr = date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+  return `${dateStr} ${timeStr}`;
 }
 
-// Storage Operations
-function loadNotes() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  notes = data ? JSON.parse(data) : [];
+function saveToStorage() {
+  localStorage.setItem('notes', JSON.stringify(notes));
 }
 
-function saveNotes() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-// UI Rendering
 function renderNotes(filter = '') {
-  if (!notesList) return;
   notesList.innerHTML = '';
-  
-  const filteredNotes = notes.filter(note => 
-    (note.title && note.title.toLowerCase().includes(filter.toLowerCase())) || 
-    (note.content && note.content.toLowerCase().includes(filter.toLowerCase()))
+  const filtered = notes.filter(n => 
+    n.title.toLowerCase().includes(filter.toLowerCase()) || 
+    n.content.toLowerCase().includes(filter.toLowerCase())
   );
 
-  filteredNotes.forEach(note => {
+  filtered.sort((a, b) => b.updatedAt - a.updatedAt);
+
+  filtered.forEach(note => {
     const row = document.createElement('div');
     row.className = 'note-row';
-    row.dataset.id = note.id;
     
-    // Rak struktur: Title -> Date/Time -> Delete
-    row.innerHTML = `
-      <span class="note-title">${escapeHtml(note.title || 'Namnlös')}</span>
-      <span class="note-meta">${formatDate(note.updatedAt)}</span>
-      <button class="delete-btn" type="button" aria-label="Radera">✕</button>
-    `;
+    const titleEl = document.createElement('span');
+    titleEl.className = 'note-title';
+    titleEl.textContent = note.title || 'Namnlös';
 
-    // Klick på raden öppnar anteckningen för redigering
-    row.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('delete-btn')) {
-        openEditor(note.id);
-      }
+    const metaEl = document.createElement('span');
+    metaEl.className = 'note-meta';
+    metaEl.textContent = formatDate(note.updatedAt);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.textContent = '✕';
+    delBtn.setAttribute('aria-label', 'Radera');
+    
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteNote(note.id);
     });
 
-    // Klick på X-knappen raderar
-    const deleteBtn = row.querySelector('.delete-btn');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        deleteNote(note.id);
-      });
-    }
+    row.appendChild(titleEl);
+    row.appendChild(metaEl);
+    row.appendChild(delBtn);
+
+    row.addEventListener('click', () => openEditor(note.id));
 
     notesList.appendChild(row);
   });
 }
 
-// Navigation & Views
-function showListView() {
-  if (editorView) editorView.classList.add('hidden');
-  if (notesListView) notesListView.classList.remove('hidden');
-  currentNoteId = null;
-  renderNotes(searchInput ? searchInput.value : '');
-}
-
-function openEditor(noteId = null) {
-  currentNoteId = noteId;
-  
-  if (noteId) {
-    const note = notes.find(n => String(n.id) === String(noteId));
+function openEditor(id = null) {
+  activeNoteId = id;
+  if (id) {
+    const note = notes.find(n => n.id === id);
     if (note) {
-      noteTitleInput.value = note.title || '';
-      noteContentInput.value = note.content || '';
+      noteTitleInput.value = note.title;
+      noteContentInput.value = note.content;
     }
   } else {
     noteTitleInput.value = '';
     noteContentInput.value = '';
   }
-
-  if (notesListView) notesListView.classList.add('hidden');
-  if (editorView) editorView.classList.remove('hidden');
-  if (noteTitleInput) noteTitleInput.focus();
+  notesList.classList.add('hidden');
+  document.querySelector('.search-container').classList.add('hidden');
+  editor.classList.remove('hidden');
 }
 
-// Actions
-function saveCurrentNote() {
+function closeEditor() {
+  activeNoteId = null;
+  editor.classList.add('hidden');
+  notesList.classList.remove('hidden');
+  document.querySelector('.search-container').classList.remove('hidden');
+  renderNotes(searchInput.value);
+}
+
+function saveNote() {
   const title = noteTitleInput.value.trim();
   const content = noteContentInput.value.trim();
 
   if (!title && !content) {
-    showListView();
+    closeEditor();
     return;
   }
 
-  const timestamp = Date.now();
+  const now = Date.now();
 
-  if (currentNoteId) {
-    const note = notes.find(n => String(n.id) === String(currentNoteId));
+  if (activeNoteId) {
+    const note = notes.find(n => n.id === activeNoteId);
     if (note) {
       note.title = title;
       note.content = content;
-      note.updatedAt = timestamp;
+      note.updatedAt = now;
     }
   } else {
-    const newNote = {
-      id: 'note_' + timestamp + '_' + Math.random().toString(36).substr(2, 9),
-      title,
-      content,
-      updatedAt: timestamp
-    };
-    notes.unshift(newNote);
+    notes.push({
+      id: 'note_' + now,
+      title: title || 'Namnlös',
+      content: content,
+      updatedAt: now
+    });
   }
 
-  saveNotes();
-  showListView();
+  saveToStorage();
+  closeEditor();
 }
 
-function deleteNote(noteId) {
-  const noteIndex = notes.findIndex(n => String(n.id) === String(noteId));
-  if (noteIndex > -1) {
-    lastDeletedNote = { note: notes[noteIndex], index: noteIndex };
-    notes.splice(noteIndex, 1);
-    saveNotes();
-    renderNotes(searchInput ? searchInput.value : '');
-    showUndoToast();
+function deleteNote(id) {
+  const index = notes.findIndex(n => n.id === id);
+  if (index !== -1) {
+    lastDeletedNote = { note: notes[index], index };
+    notes.splice(index, 1);
+    saveToStorage();
+    renderNotes(searchInput.value);
+    showToast();
   }
 }
 
-function showUndoToast() {
-  clearTimeout(undoTimeout);
-  if (toast) toast.classList.remove('hidden');
-  
-  undoTimeout = setTimeout(() => {
-    if (toast) toast.classList.add('hidden');
-    lastDeletedNote = null;
+function showToast() {
+  clearTimeout(toastTimeout);
+  toast.classList.remove('hidden');
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('hidden');
   }, 4000);
 }
 
-function undoDelete() {
+undoBtn.addEventListener('click', () => {
   if (lastDeletedNote) {
     notes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
-    saveNotes();
-    renderNotes(searchInput ? searchInput.value : '');
-    if (toast) toast.classList.add('hidden');
+    saveToStorage();
     lastDeletedNote = null;
-    clearTimeout(undoTimeout);
+    toast.classList.add('hidden');
+    renderNotes(searchInput.value);
   }
+});
+
+addBtn.addEventListener('click', () => openEditor());
+saveBtn.addEventListener('click', saveNote);
+cancelBtn.addEventListener('click', closeEditor);
+searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// Initialization & Event Binding
-document.addEventListener('DOMContentLoaded', () => {
-  initDOMElements();
-  loadNotes();
-
-  if (addBtn) addBtn.addEventListener('click', () => openEditor());
-  if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
-  if (cancelBtn) cancelBtn.addEventListener('click', showListView);
-  if (undoBtn) undoBtn.addEventListener('click', undoDelete);
-
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => renderNotes(e.target.value));
-  }
-
-  renderNotes();
-});
+renderNotes();
