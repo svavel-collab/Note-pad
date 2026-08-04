@@ -8,17 +8,21 @@ let lastDeletedNote = null;
 let undoTimeout = null;
 
 // DOM Elements
-const notesListView = document.getElementById('notes-list-view');
-const editorView = document.getElementById('editor-view');
-const notesList = document.getElementById('notes-list');
-const searchInput = document.getElementById('search-input');
-const addBtn = document.getElementById('add-btn');
-const noteTitleInput = document.getElementById('note-title-input');
-const noteContentInput = document.getElementById('note-content-input');
-const saveBtn = document.getElementById('save-btn');
-const cancelBtn = document.getElementById('cancel-btn');
-const toast = document.getElementById('toast');
-const undoBtn = document.getElementById('undo-btn');
+let notesListView, editorView, notesList, searchInput, addBtn, noteTitleInput, noteContentInput, saveBtn, cancelBtn, toast, undoBtn;
+
+function initDOMElements() {
+  notesListView = document.getElementById('notes-list-view');
+  editorView = document.getElementById('editor-view');
+  notesList = document.getElementById('notes-list');
+  searchInput = document.getElementById('search-input');
+  addBtn = document.getElementById('add-btn');
+  noteTitleInput = document.getElementById('note-title-input');
+  noteContentInput = document.getElementById('note-content-input');
+  saveBtn = document.getElementById('save-btn');
+  cancelBtn = document.getElementById('cancel-btn');
+  toast = document.getElementById('toast');
+  undoBtn = document.getElementById('undo-btn');
+}
 
 // Helper Functions
 function escapeHtml(str) {
@@ -50,16 +54,18 @@ function saveNotes() {
 
 // UI Rendering
 function renderNotes(filter = '') {
+  if (!notesList) return;
   notesList.innerHTML = '';
   
   const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(filter.toLowerCase()) || 
-    note.content.toLowerCase().includes(filter.toLowerCase())
+    (note.title && note.title.toLowerCase().includes(filter.toLowerCase())) || 
+    (note.content && note.content.toLowerCase().includes(filter.toLowerCase()))
   );
 
   filteredNotes.forEach(note => {
     const row = document.createElement('div');
     row.className = 'note-row';
+    row.dataset.id = note.id;
     
     // Rak struktur: Title -> Date/Time -> Delete
     row.innerHTML = `
@@ -68,16 +74,21 @@ function renderNotes(filter = '') {
       <button class="delete-btn" aria-label="Radera">✕</button>
     `;
 
+    // Klick på hela raden öppnar editorn för redigering
     row.addEventListener('click', (e) => {
       if (!e.target.classList.contains('delete-btn')) {
         openEditor(note.id);
       }
     });
 
-    row.querySelector('.delete-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteNote(note.id);
-    });
+    // Klick på X raderar
+    const deleteBtn = row.querySelector('.delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteNote(note.id);
+      });
+    }
 
     notesList.appendChild(row);
   });
@@ -85,28 +96,28 @@ function renderNotes(filter = '') {
 
 // Navigation & Views
 function showListView() {
-  editorView.classList.add('hidden');
-  notesListView.classList.remove('hidden');
+  if (editorView) editorView.classList.add('hidden');
+  if (notesListView) notesListView.classList.remove('hidden');
   currentNoteId = null;
-  renderNotes(searchInput.value);
+  renderNotes(searchInput ? searchInput.value : '');
 }
 
 function openEditor(noteId = null) {
   currentNoteId = noteId;
   
   if (noteId) {
-    const note = notes.find(n => n.id === noteId);
+    const note = notes.find(n => String(n.id) === String(noteId));
     if (note) {
-      noteTitleInput.value = note.title;
-      noteContentInput.value = note.content;
+      noteTitleInput.value = note.title || '';
+      noteContentInput.value = note.content || '';
     }
   } else {
     noteTitleInput.value = '';
     noteContentInput.value = '';
   }
 
-  notesListView.classList.add('hidden');
-  editorView.classList.remove('hidden');
+  if (notesListView) notesListView.classList.add('hidden');
+  if (editorView) editorView.classList.remove('hidden');
   noteTitleInput.focus();
 }
 
@@ -123,7 +134,7 @@ function saveCurrentNote() {
   const timestamp = Date.now();
 
   if (currentNoteId) {
-    const note = notes.find(n => n.id === currentNoteId);
+    const note = notes.find(n => String(n.id) === String(currentNoteId));
     if (note) {
       note.title = title;
       note.content = content;
@@ -144,22 +155,22 @@ function saveCurrentNote() {
 }
 
 function deleteNote(noteId) {
-  const noteIndex = notes.findIndex(n => n.id === noteId);
+  const noteIndex = notes.findIndex(n => String(n.id) === String(noteId));
   if (noteIndex > -1) {
     lastDeletedNote = { note: notes[noteIndex], index: noteIndex };
     notes.splice(noteIndex, 1);
     saveNotes();
-    renderNotes(searchInput.value);
+    renderNotes(searchInput ? searchInput.value : '');
     showUndoToast();
   }
 }
 
 function showUndoToast() {
   clearTimeout(undoTimeout);
-  toast.classList.remove('hidden');
+  if (toast) toast.classList.remove('hidden');
   
   undoTimeout = setTimeout(() => {
-    toast.classList.add('hidden');
+    if (toast) toast.classList.add('hidden');
     lastDeletedNote = null;
   }, 4000);
 }
@@ -168,27 +179,27 @@ function undoDelete() {
   if (lastDeletedNote) {
     notes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
     saveNotes();
-    renderNotes(searchInput.value);
-    toast.classList.add('hidden');
+    renderNotes(searchInput ? searchInput.value : '');
+    if (toast) toast.classList.add('hidden');
     lastDeletedNote = null;
     clearTimeout(undoTimeout);
   }
 }
 
-// Event Listeners
-if (addBtn) addBtn.addEventListener('click', () => openEditor());
-if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
-if (cancelBtn) cancelBtn.addEventListener('click', showListView);
-if (undoBtn) undoBtn.addEventListener('click', undoDelete);
-
-if (searchInput) {
-  searchInput.addEventListener('input', (e) => {
-    renderNotes(e.target.value);
-  });
-}
-
-// Initialization
+// Initialization & Event Binding
 document.addEventListener('DOMContentLoaded', () => {
+  initDOMElements();
   loadNotes();
+
+  // Koppla alla händelser säkert efter att DOM är laddad
+  if (addBtn) addBtn.onclick = () => openEditor();
+  if (saveBtn) saveBtn.onclick = saveCurrentNote;
+  if (cancelBtn) cancelBtn.onclick = showListView;
+  if (undoBtn) undoBtn.onclick = undoDelete;
+
+  if (searchInput) {
+    searchInput.oninput = (e) => renderNotes(e.target.value);
+  }
+
   renderNotes();
 });
