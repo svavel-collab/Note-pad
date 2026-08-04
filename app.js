@@ -3,12 +3,15 @@ let activeNoteId = null;
 let lastDeletedNote = null;
 let toastTimeout = null;
 let activeTimeFilter = 'all';
+let currentSortMode = 'date'; // 'date', 'alpha', 'color'
+let selectedColor = '#3b82f6';
 
 const notesList = document.getElementById('notes-list');
 const editor = document.getElementById('editor');
 const noteTitleInput = document.getElementById('note-title-input');
 const noteContentInput = document.getElementById('note-content-input');
 const searchToggleBtn = document.getElementById('search-toggle-btn');
+const sortBtn = document.getElementById('sort-btn');
 const searchContainer = document.getElementById('search-container');
 const searchInput = document.getElementById('search-input');
 const filterChips = document.querySelectorAll('.chip');
@@ -17,8 +20,7 @@ const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 const toast = document.getElementById('toast');
 const undoBtn = document.getElementById('undo-btn');
-
-const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+const colorDots = document.querySelectorAll('.color-dot');
 
 function formatDate(timestamp) {
   if (!timestamp) return '';
@@ -47,11 +49,9 @@ function renderNotes() {
   const now = Date.now();
 
   const filtered = notes.filter(note => {
-    // Filter på titel
     const titleMatch = (note.title || '').toLowerCase().includes(query);
     if (!titleMatch) return false;
 
-    // Filter på tidsintervall
     if (activeTimeFilter === 'all') return true;
 
     const noteTime = Number(note.updatedAt) || 0;
@@ -69,14 +69,25 @@ function renderNotes() {
     return true;
   });
 
-  filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  // Sortering
+  filtered.sort((a, b) => {
+    if (currentSortMode === 'alpha') {
+      return (a.title || '').localeCompare(b.title || '', 'sv');
+    } else if (currentSortMode === 'color') {
+      const colorComp = (a.color || '#3b82f6').localeCompare(b.color || '#3b82f6');
+      if (colorComp !== 0) return colorComp;
+      return (b.updatedAt || 0) - (a.updatedAt || 0);
+    } else {
+      // Datum (standard)
+      return (b.updatedAt || 0) - (a.updatedAt || 0);
+    }
+  });
 
-  filtered.forEach((note, index) => {
+  filtered.forEach((note) => {
     const row = document.createElement('div');
     row.className = 'note-row';
-    row.style.borderLeftColor = colors[index % colors.length];
+    row.style.borderLeftColor = note.color || '#3b82f6';
     
-    // Behållare för titel och text-preview
     const contentBox = document.createElement('div');
     contentBox.className = 'note-content-preview';
 
@@ -119,6 +130,22 @@ function renderNotes() {
   });
 }
 
+// Sorteringsknapp
+sortBtn.addEventListener('click', () => {
+  if (currentSortMode === 'date') {
+    currentSortMode = 'alpha';
+    sortBtn.title = 'Sorterar: A-Ö';
+  } else if (currentSortMode === 'alpha') {
+    currentSortMode = 'color';
+    sortBtn.title = 'Sorterar: Färg';
+  } else {
+    currentSortMode = 'date';
+    sortBtn.title = 'Sorterar: Datum';
+  }
+  renderNotes();
+});
+
+// Sök-toggle
 searchToggleBtn.addEventListener('click', () => {
   const isHidden = searchContainer.classList.toggle('hidden');
   if (!isHidden) {
@@ -149,6 +176,26 @@ function updateChipUI() {
   });
 }
 
+// Färgval i editorn
+colorDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    colorDots.forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    selectedColor = dot.getAttribute('data-color');
+  });
+});
+
+function setColorPicker(color) {
+  selectedColor = color || '#3b82f6';
+  colorDots.forEach(d => {
+    if (d.getAttribute('data-color') === selectedColor) {
+      d.classList.add('active');
+    } else {
+      d.classList.remove('active');
+    }
+  });
+}
+
 function openEditor(id = null) {
   activeNoteId = id;
   if (id) {
@@ -156,10 +203,12 @@ function openEditor(id = null) {
     if (note) {
       noteTitleInput.value = note.title;
       noteContentInput.value = note.content;
+      setColorPicker(note.color);
     }
   } else {
     noteTitleInput.value = '';
     noteContentInput.value = '';
+    setColorPicker('#3b82f6');
   }
   notesList.classList.add('hidden');
   searchContainer.classList.add('hidden');
@@ -189,6 +238,7 @@ function saveNote() {
     if (note) {
       note.title = title;
       note.content = content;
+      note.color = selectedColor;
       note.updatedAt = now;
     }
   } else {
@@ -196,6 +246,7 @@ function saveNote() {
       id: 'note_' + now,
       title: title || 'Namnlös',
       content: content,
+      color: selectedColor,
       updatedAt: now
     });
   }

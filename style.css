@@ -29,21 +29,21 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-#search-toggle-btn {
+#sort-btn, #search-toggle-btn {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  color: #9ca3af;
   cursor: pointer;
   padding: 4px;
-  opacity: 0.8;
   -webkit-tap-highlight-color: transparent;
 }
 
-#search-toggle-btn:active {
-  opacity: 1;
+#sort-btn:active, #search-toggle-btn:active {
+  color: #ffffff;
   transform: scale(0.92);
 }
 
@@ -95,7 +95,6 @@ body {
   color: #71717a;
 }
 
-/* Filter-knappar (Chips) */
 .filter-chips {
   display: flex;
   gap: 6px;
@@ -144,7 +143,6 @@ body {
   background-color: #27272a;
 }
 
-/* Behållare för titel + preview */
 .note-content-preview {
   display: flex;
   flex-direction: column;
@@ -163,7 +161,6 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Text-preview */
 .note-snippet {
   font-size: 0.78rem;
   color: #71717a;
@@ -226,6 +223,27 @@ body {
 #note-content-input {
   height: 250px;
   resize: vertical;
+}
+
+/* Color Picker i Editorn */
+.color-picker {
+  display: flex;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.color-dot.active {
+  border-color: #ffffff;
+  transform: scale(1.15);
 }
 
 .editor-actions {

@@ -5,49 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anteckningar</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
-  <meta name="theme-color" content="#121316">
   <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#121316">
 </head>
 <body>
 
   <header class="app-header">
     <h1 id="app-title">Anteckningar</h1>
     <div class="header-actions">
+      <button id="sort-btn" aria-label="Sortera" title="Sortera">⇅</button>
       <button id="search-toggle-btn" aria-label="Sök">🔍</button>
-      <button id="add-btn" aria-label="Ny anteckning">+</button>
+      <button id="add-btn" aria-label="Skapa anteckning">+</button>
     </div>
   </header>
 
-  <!-- Sök & Filterpanel (Dold som standard) -->
-  <div class="search-container hidden" id="search-container">
-    <input type="text" id="search-input" placeholder="Sök på titel...">
-    
+  <div id="search-container" class="search-container hidden">
+    <input type="text" id="search-input" placeholder="Sök i titlar...">
     <div class="filter-chips">
       <button class="chip active" data-days="all">Alla</button>
       <button class="chip" data-days="1">Idag</button>
-      <button class="chip" data-days="7">7 dagarna</button>
-      <button class="chip" data-days="30">30 dagarna</button>
+      <button class="chip" data-days="7">7d</button>
+      <button class="chip" data-days="30">30d</button>
     </div>
   </div>
 
   <main id="notes-list" class="notes-list"></main>
 
-  <!-- Editor (Dold som standard) -->
-  <div id="editor" class="editor hidden">
+  <section id="editor" class="editor hidden">
     <input type="text" id="note-title-input" placeholder="Titel">
-    <textarea id="note-content-input" placeholder="Skriv anteckning..."></textarea>
+    
+    <!-- Färgval för kategori -->
+    <div class="color-picker" id="color-picker">
+      <button type="button" class="color-dot active" data-color="#3b82f6" style="background-color: #3b82f6;"></button>
+      <button type="button" class="color-dot" data-color="#10b981" style="background-color: #10b981;"></button>
+      <button type="button" class="color-dot" data-color="#f59e0b" style="background-color: #f59e0b;"></button>
+      <button type="button" class="color-dot" data-color="#8b5cf6" style="background-color: #8b5cf6;"></button>
+      <button type="button" class="color-dot" data-color="#ec4899" style="background-color: #ec4899;"></button>
+    </div>
+
+    <textarea id="note-content-input" placeholder="Skriv din anteckning här..."></textarea>
     <div class="editor-actions">
       <button id="save-btn">Spara</button>
       <button id="cancel-btn">Avbryt</button>
     </div>
-  </div>
+  </section>
 
-  <!-- Ångra-toast -->
   <div id="toast" class="toast hidden">
     <span>Anteckning raderad</span>
-    <button id="undo-btn">ÅNGRA</button>
+    <button id="undo-btn">Ångra</button>
   </div>
 
   <script src="app.js"></script>
