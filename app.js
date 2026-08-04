@@ -191,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initDOMElements();
   loadNotes();
 
-  // Säker koppling av händelselyssnare utan syntaxfel
   if (addBtn) addBtn.addEventListener('click', () => openEditor());
   if (saveBtn) saveBtn.addEventListener('click', saveCurrentNote);
   if (cancelBtn) cancelBtn.addEventListener('click', showListView);
